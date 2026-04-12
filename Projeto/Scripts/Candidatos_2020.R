@@ -6,7 +6,7 @@ library(tidyverse)  #Carregar biblioteca
 
 
 
-#Importa banco de dados sobre os candidatos e filtra por 
+#Importa o banco de dados sobre os candidatos e filtra  
 candidatos2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\consulta_cand_2020_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2020 <- candidatos2020 %>%
@@ -15,11 +15,11 @@ banco_candidatos2020 <- candidatos2020 %>%
   filter(DS_SITUACAO_CANDIDATURA == "APTO")
 
 banco_filtrado2020 <- banco_candidatos2020 %>%
-  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO, SG_PARTIDO, DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO)
+  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO, SG_PARTIDO, DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO,DS_SITUACAO_CANDIDATURA)
 
 
 
-#Importa banco de dados de bens e filtra por 
+#Importa o banco de dados de bens e filtra 
 bens2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\bem_candidato_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_bens2020 <- bens2020 %>%
@@ -29,7 +29,7 @@ banco_bens2020 <- bens2020 %>%
 
 
 
-#Importar banco de dados resultado e filtra
+#Importa o banco de dados resultado e filtra
 resultado2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\votacao_candidato_munzona_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_resultado2020 <- resultado2020 %>%
@@ -40,7 +40,7 @@ banco_resultado2020 <- resultado2020 %>%
  
 
 
-#Importar banco de dados receita e filtra
+#Importa o banco de dados receita e filtra
 receita2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\receitas_candidatos_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_receita2020 <- receita2020 %>%
@@ -62,6 +62,5 @@ left_join(banco_bens2020, by = "SQ_CANDIDATO") %>%
 
 
 #Pra salvar em csv
-
 write.csv2(banco_final2020, "Banco_2020.csv",row.names = FALSE,fileEncoding = "latin1" )
 
