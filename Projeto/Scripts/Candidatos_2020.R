@@ -1,12 +1,16 @@
 
 
-install.packages("tidyverse") #Instalar biblioteca
+install.packages("tidyverse") #Instala a biblioteca
 
-library(tidyverse)  #Carregar biblioteca
+library(tidyverse)  #Carrega a biblioteca
 
 
 
-#Importa o banco de dados sobre os candidatos e filtra  
+#Importa o banco de dados sobre os candidatos e filtra por:
+# (I)candidatos de São Paulo
+# (II)vereadores
+# (III)situação de candidatura apto 
+#Em seguida, cria um novo banco com as varíaveis desejadas
 candidatos2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\consulta_cand_2020_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2020 <- candidatos2020 %>%
@@ -19,7 +23,10 @@ banco_filtrado2020 <- banco_candidatos2020 %>%
 
 
 
-#Importa o banco de dados de bens e filtra 
+#Importa o banco de dados sobre os bens 
+#Filtra para os candidatos de São Paulo
+#Agrupa pelo SQ do candidato
+#Soma os bens para cada candidato
 bens2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\bem_candidato_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_bens2020 <- bens2020 %>%
@@ -29,7 +36,10 @@ banco_bens2020 <- bens2020 %>%
 
 
 
-#Importa o banco de dados resultado e filtra
+#Importa o banco de dados sobre o resultado
+#Filtra por: (I) candidatos de São Paulo e (II) vereadores
+#Agrupa pelo SQ do candidato e pela resultado da eleição
+#Soma a quantidade de votos para cada candidato
 resultado2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\votacao_candidato_munzona_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_resultado2020 <- resultado2020 %>%
@@ -40,7 +50,10 @@ banco_resultado2020 <- resultado2020 %>%
  
 
 
-#Importa o banco de dados receita e filtra
+#Importa o banco de dados sobre receita
+#Filtra por: (I) candidatos de São Paulo e (II) vereadores
+#Agrupa pelo SQ do candidato
+#Soma a receita total, a origem da receita e a fonte da receita para cada candidato
 receita2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\receitas_candidatos_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_receita2020 <- receita2020 %>%
@@ -53,7 +66,7 @@ banco_receita2020 <- receita2020 %>%
 
 
 
-#Juntar os bancos em 1 
+#Junta os bancos criados em um, a partir do banco_filtrado2020 que possui todos os filtros
 banco_final2020 <- banco_filtrado2020 %>%
 left_join(banco_bens2020, by = "SQ_CANDIDATO") %>%        
   left_join(banco_resultado2020, by = "SQ_CANDIDATO") %>%
@@ -61,6 +74,5 @@ left_join(banco_bens2020, by = "SQ_CANDIDATO") %>%
 
 
 
-#Pra salvar em csv
+#Salva em csv
 write.csv2(banco_final2020, "Banco_2020.csv",row.names = FALSE,fileEncoding = "latin1" )
-
