@@ -2,7 +2,16 @@
 
 install.packages("tidyverse") #Instala a biblioteca
 
-library(tidyverse)  #Carrega a biblioteca
+library(tidyverse)  #Carrega a biblioteca           
+
+
+
+#Importa o banco de dados complementar sobre os candidatos
+#Seleciona as varíaveis desejadas
+complementar2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\consulta_cand_complementar_2020_SP.csv" ,fileEncoding = "latin1")
+
+banco_complementar2020 <- complementar2020 %>%
+  select(SQ_CANDIDATO, ST_REELEICAO)
 
 
 
@@ -39,7 +48,7 @@ banco_bens2020 <- bens2020 %>%
 #Importa o banco de dados sobre o resultado
 #Filtra por: (I) candidatos de São Paulo e (II) vereadores
 #Agrupa pelo SQ do candidato e pela resultado da eleição
-#Soma a quantidade de votos para cada candidato
+#Soma a quantidade de votos nominais válidos para cada candidato
 resultado2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\votacao_candidato_munzona_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_resultado2020 <- resultado2020 %>%
@@ -70,7 +79,8 @@ banco_receita2020 <- receita2020 %>%
 banco_final2020 <- banco_filtrado2020 %>%
 left_join(banco_bens2020, by = "SQ_CANDIDATO") %>%        
   left_join(banco_resultado2020, by = "SQ_CANDIDATO") %>%
-  left_join(banco_receita2020, by = "SQ_CANDIDATO")
+  left_join(banco_receita2020, by = "SQ_CANDIDATO") %>%
+  left_join(banco_complementar2020, by= "SQ_CANDIDATO")
 
 
 
