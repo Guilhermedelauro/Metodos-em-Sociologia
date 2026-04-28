@@ -24,7 +24,7 @@ table(candidatos_2024$DS_COR_RACA) #vê a quiantidade de candidatos por raça
 #A partir da tabela de candidatos filtra para os eleitos e coloca em ordem decrescente pelo número de votos
 eleitos2024 <- candidatos_2024 %>%
   filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR MÉDIA", "ELEITO POR QP")) %>%
-  arrange(desc(total_votos))
+  arrange(desc(TOTAL_VOTOS))
 
 #o último eleito recebeu 22306 votos
 
@@ -33,18 +33,18 @@ eleitos2024 <- candidatos_2024 %>%
 #Cria uma nova variável que diz se o candidato é competitivo ou não 
 #Os competitivos tem pelo menos 4461 votos (20% do número de votos do último eleito)
 candidatos_competitivos2024 <- candidatos_filtrado_2024 %>%
-  mutate(COMPETITIVO = ifelse(total_votos >= 4461, "Sim", "Não"))
+  mutate(COMPETITIVO = ifelse(TOTAL_VOTOS >= 4461, "Sim", "Não"))
 
 
 #Cria uma nova variável que divide os competitivos em decis
-candidatos_decis2024 <- candidatos_competitivos %>%
-  filter(Competitivo == "Sim") %>%
-  mutate(Decil = ntile(total_votos, 10))
+candidatos_decis2024 <- candidatos_competitivos2024 %>%
+  filter(COMPETITIVO == "Sim") %>%
+  mutate(DECIL = ntile(TOTAL_VOTOS, 10))
   
 
 candidatos_decis2024 %>%   #mostra o máximo e mínimo de cada decil
-group_by(Decil) %>%
+group_by(DECIL) %>%
   summarise(
-    minimo = min(total_votos, na.rm = TRUE),
-    maximo = max(total_votos, na.rm = TRUE),
+    minimo = min(TOTAL_VOTOS, na.rm = TRUE),
+    maximo = max(TOTAL_VOTOS, na.rm = TRUE),
     .groups = "drop")
