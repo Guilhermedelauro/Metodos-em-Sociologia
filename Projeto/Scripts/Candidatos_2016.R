@@ -11,7 +11,6 @@ library(tidyverse)  #Carrega a biblioteca
 # (II) vereadores
 # (III) que possuem a situação de candidatura apta
 #Em seguida, cria um banco de dados com as varíaveis desejadas
-
 candidatos2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\consulta_cand_2016_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2016 <- candidatos2016 %>%
@@ -20,7 +19,7 @@ banco_candidatos2016 <- candidatos2016 %>%
   filter(DS_SITUACAO_CANDIDATURA == "APTO")
 
 banco_candidatos_filtrado2016 <- banco_candidatos2016 %>%
-  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO, DS_SITUACAO_CANDIDATURA)
+  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO, DS_SITUACAO_CANDIDATURA,ST_REELEICAO)
 
 
 
@@ -28,7 +27,6 @@ banco_candidatos_filtrado2016 <- banco_candidatos2016 %>%
 #Filtra para o munícipio de São Paulo
 #Agrupa pelo SQ do candidato
 #Soma o total de bens de cada candidato
-
 bens2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\bem_candidato_2016_SP.csv", fileEncoding = "latin1")
 
 banco_bens2016 <- bens2016 %>%
@@ -42,7 +40,6 @@ banco_bens2016 <- bens2016 %>%
 #Filtra por (I)candidatos do munícipio de São Paulo e (II) vereadores
 #Agrupa pelo SQ do candidato e pelo resultado da eleição
 #Soma o total de votos nominais válidos para cada candidato
-
 resultado2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\votacao_candidato_munzona_2016_SP.csv", fileEncoding = "latin1")
 
 banco_resultado2016 <- resultado2016 %>%
