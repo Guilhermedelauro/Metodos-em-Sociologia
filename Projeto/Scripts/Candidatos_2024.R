@@ -43,7 +43,7 @@ bens2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos
 banco_bens2024 <- bens2024 %>%
   filter(NM_UE %in% c("SÃO PAULO", "SAO PAULO")) %>%
   group_by(SQ_CANDIDATO) %>%
-  summarise(bens_total = sum(VR_BEM_CANDIDATO))
+  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO))
 
 
 
@@ -57,7 +57,7 @@ banco_resultado2024 <- resultado2024 %>%
   filter(NM_UE %in% c("SÃO PAULO", "Sao PAULO")) %>%
   filter(DS_CARGO == "Vereador") %>%
   group_by(SQ_CANDIDATO, DS_SIT_TOT_TURNO) %>%
-  summarise(total_votos = sum(QT_VOTOS_NOMINAIS_VALIDOS))
+  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS))
 
 
 
@@ -71,8 +71,8 @@ banco_receita2024 <- receita2024 %>%
   filter(NM_UE == "SÃO PAULO") %>%
   filter(DS_CARGO == "Vereador") %>%
   group_by(SQ_CANDIDATO)  %>%
-  summarise(receita_total = sum(VR_RECEITA),
-            tipo = paste(unique(DS_FONTE_RECEITA), collapse = ", "))
+  summarise(RECEITA_TOTAL = sum(VR_RECEITA),
+            TIPO_RECEITA = paste(unique(DS_FONTE_RECEITA), collapse = ", "))
 
 
 
@@ -80,7 +80,8 @@ banco_receita2024 <- receita2024 %>%
 banco_final2024 <- banco_candidatos_filtrado2024 %>%
   inner_join(banco_complementar_filtrado2024, by = "SQ_CANDIDATO") %>%
   left_join(banco_resultado2024, by = "SQ_CANDIDATO") %>%
-  left_join(banco_receita2024, by = "SQ_CANDIDATO")
+  left_join(banco_receita2024, by = "SQ_CANDIDATO") %>%
+  left_join(banco_bens2024, by = "SQ_CANDIDATO")
 
 
 

@@ -1,6 +1,6 @@
 
 
-install.packages("tidyverse") #Instala a biblioteca
+Install.packages("tidyverse") #Instala a biblioteca
 
 library(tidyverse)  #Carrega a biblioteca           
 
@@ -41,7 +41,7 @@ bens2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos
 banco_bens2020 <- bens2020 %>%
   filter(grepl("SÃO PAULO", NM_UE, ignore.case = TRUE)) %>%
   group_by(SQ_CANDIDATO) %>%
-  summarise(bens_total = sum(VR_BEM_CANDIDATO))
+  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO))
 
 
 
@@ -55,7 +55,7 @@ banco_resultado2020 <- resultado2020 %>%
   filter(grepl("SÃO PAULO", NM_UE, ignore.case = TRUE)) %>%
   filter(grepl("VEREADOR", DS_CARGO, ignore.case = TRUE)) %>%
   group_by(SQ_CANDIDATO, DS_SIT_TOT_TURNO) %>%
-  summarise(total_votos = sum(QT_VOTOS_NOMINAIS_VALIDOS)) 
+  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS)) 
  
 
 
@@ -69,9 +69,8 @@ banco_receita2020 <- receita2020 %>%
   filter(grepl("SÃO PAULO", NM_UE, ignore.case = TRUE)) %>%
   filter(grepl("VEREADOR", DS_CARGO, ignore.case = TRUE)) %>%
   group_by(SQ_CANDIDATO) %>%
-  summarise(receita_total = sum(VR_RECEITA),
-            origens = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "),
-            fontes = paste(unique(DS_FONTE_RECEITA), collapse = ", "))
+  summarise(RECEITA_TOTAL = sum(VR_RECEITA),
+            TIPO_RECEITA = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "))
 
 
 
