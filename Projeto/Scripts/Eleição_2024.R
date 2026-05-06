@@ -133,37 +133,45 @@ competitivos_semNA2024 %>%
             p_valor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$p.value)
 
 
+#Faz a proporção de candidatos competitivos brancos e não-brancos a cada decil de receita
+tabela_decil_receita <- competitivos_semNA2024 %>%
+  count(RACA_AGRUPADA, DECIL) %>%
+  group_by(DECIL) %>%
+  mutate(prop = n / sum(n)) 
 
-# Decil
-# Como as variaveis estoa trelacionadas a raça (isso muda coocar raça nos modelos?)
-# modelos e decil junto, tentar prever 
-#verificar as variaveis dos modelos 
+tabela_decil_receita %>%   #Para garantir q a soma de cada decil da 1 
+  group_by(DECIL) %>%
+  summarise(soma = sum(prop))
+
+
+#Conta o número de brancos e não brancos por partido para os candidatos
+tabela_partido_candidato <- candidatos_semNA %>%
+  tabyl(RACA_AGRUPADA,SG_PARTIDO)
+
+#Conta o número de brancos e não brancos por partido para os competitivos
+tabela_partido_competitivo <- competitivos_semNA2024 %>%
+  tabyl(RACA_AGRUPADA, SG_PARTIDO)
 
 
 
-
-
-#Modelo de regressão multipla para os candiatos (pra ver o número de votos)
+#Modelo de regressão multipla para os candidatos (pra ver o número de votos)
 #Variável dependente: número de votos
 #Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, (bens)  (ocupação) (partido)
 
 modelo_lm <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO,
                 data = candidatos_semNA)
 
+summary(modelo_lm)
+
 vif(modelo_lm) #vê se as variáveis independentes estão muito correlacionadas
 
 tidy(modelo_lm, conf.int = TRUE) #visualiza os dados brutos
 
-tabela_lm <- tidy(modelo_lm, conf.int = TRUE) %>% #cria uma tabela com os dados
-  mutate(efeito_percentual = ifelse(grepl("log\\(", term),
-      estimate * 100,                 
-      (exp(estimate) - 1) * 100))       
-    
   
 #Modelo de regressão logística para os candidatos(pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, (ocupação) (grau de instrução) (bens) (partido)
-modelo_logist <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO,
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, (ocupação) (bens) (partido)
+modelo_logist <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO,
                   data = candidatos_semNA,
                   family = binomial(link = "logit"))
 
@@ -171,26 +179,34 @@ summary(modelo_logist)
 
 vif(modelo_logist)
 
+exp(coef(modelo_logist)) %>%
+  format(scientific = FALSE)
+
+#Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
+modelo_logist_2 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA,
+                       data = candidatos_semNA,
+                       family = binomial(link = "logit"))
+
+summary(modelo_logist_2)
+
 
 #Modelo de regressão multipla para os competitivos 
 #Variável dependente: número de votos
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, (bens)  (ocupação) (partido)
+#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, (bens)  (ocupação) (partido) 
 modelo_lm_com <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO,
                 data = competitivos_semNA2024)
+
+summary(modelo_lm_com)
 
 vif(modelo_lm_com) #vê se as variáveis independentes estão muito correlacionadas
 
 tidy(modelo_lm_com, conf.int = TRUE)  #visualiza os dados brutos
 
-tabela_lm_com <- tidy(modelo_lm_com, conf.int = TRUE) %>%  #cria uma tabela com os dados
-  mutate(efeito_percentual = ifelse(grepl("log\\(", term),
-                                    estimate * 100,                 
-                                    (exp(estimate) - 1) * 100))       
 
 #Modelo de regressão logística para os competitivos (pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, (bens)  (ocupação) (partido) 
-modelo_logist_com <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO,
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, (bens)  (ocupação) (partido) 
+modelo_logist_com <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO,
                      data =competitivos_semNA2024,
                      family = binomial(link = "logit"))
 
@@ -198,4 +214,26 @@ summary(modelo_logist_com)
 
 vif(modelo_logist_com)
 
+exp(coef(modelo_logist_com)) %>%
+  format(scientific = FALSE)
 
+
+#Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
+modelo_logist_com_2 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA,
+                       data = competitivos_semNA2024,
+                       family = binomial(link = "logit"))
+
+summary(modelo_logist_com_2)
+
+
+# Como cada variavel esta relacionada a raça (isso muda colocar raça nos modelos?) 
+#verificar as variaveis dos modelos 
+#observar a distribuição dos candidatos em uma variável a partir da raça
+#capital simbolico = patrimonio e escolaridade
+#possui dilploma ensino superiorir - instrução
+#ocupação- classe segundo o EGP 
+#crescimento dos não brancos em qual espectro 
+#São paulo e oustras capitais 
+#controlar o peso do  financiamento  a partir  de outras variáveis  -- doação e renda declarada 
+#captação de recurso 
+#efeito marginal no logistico com interação *
