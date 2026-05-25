@@ -5,11 +5,13 @@
 #install.packages("janitor")
 #install.packages("broom")
 #install.packages("car")
+#install.packages("marginaleffects")
 
 library(tidyverse)  #Carregar as bibliotecas
 library(janitor)
 library(broom)
 library(car)
+library(marginaleffects)
 
 #----------
 # 2.Criação dos bancos de dados
@@ -28,7 +30,7 @@ table(candidatos_2016$DS_COR_RACA) #vê a quiantidade de candidatos por raça
 
 #A partir da tabela de candidatos filtra para os eleitos e coloca em ordem decrescente pelo número de votos
 #Cria uma nova variável que diz se o candidato é competitivo ou não 
-#Os competitivos tem pelo menos 2493 votos (20% do número de votos do último eleito)
+#Os competitivos tem pelo menos 20% do número de votos do último eleito
 eleitos2016 <- candidatos_2016 %>%
   filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR MÉDIA", "ELEITO POR QP")) %>%
   arrange(desc(TOTAL_VOTOS))
@@ -110,9 +112,9 @@ competitivos_semNA2016<- candidatos_competitivos2016 %>%
          VALOR_BENS = if_else(is.na(BENS_TOTAL),0, as.numeric(BENS_TOTAL)))
 
 
-colSums(is.na(competitivos_semNA2024)) #Verifica onde tem NA
+colSums(is.na(competitivos_semNA2016)) #Verifica onde tem NA
 
-str(competitivos_semNA2024) #verifica o tipo de cada variável
+str(competitivos_semNA2016) #verifica o tipo de cada variável
 
 
 #----------
@@ -151,7 +153,7 @@ tabela_decil_receita2016 <- competitivos_semNA2016 %>%
   mutate(prop = n / sum(n)) 
 
 tabela_decil_receita2016%>%   #Para garantir q a soma de cada decil da 1 
-  group_by(DECIL) %>%
+  group_by(DECIL_RECEITA) %>%
   summarise(soma = sum(prop))
 
 
@@ -169,7 +171,7 @@ tabela_partido_competitivo2016 <- competitivos_semNA2016 %>%
 
 #Modelo de regressão multipla para os candidatos 
 #Variável dependente: número de votos
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens, recebeu fundo especial, recebeu fundo partidário, recebeu outros recursos (ocupação) (partido)
+#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens, recebeu fundo especial, recebeu fundo partidário, recebeu outros recursos 
 modelo_lm2016 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
                     data = candidatos_semNA2016)
 
@@ -185,7 +187,7 @@ plot(modelo_lm2016) #para ver os resíduos
 
 #Modelo de regressão logística para os candidatos(pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens(ocupação) (partido)
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens
 modelo_logist2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
                          data = candidatos_semNA2016,
                          family = binomial(link = "logit"))
@@ -199,17 +201,18 @@ exp(cbind(
 
 
 #Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
-modelo_logist_interacao2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
+
+modelo_logist_interacao2016 <- glm(ELEITO ~ log_receita *RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
                                    data = candidatos_semNA2016,
                                    family = binomial(link = "logit"))
 
 summary(modelo_logist_interacao2016)
 
-
+anova(modelo_logist2016, modelo_logist_interacao2016, test =  "Chisq") #para ver se a interação muda algo estatisticamente 
 
 #Modelo de regressão multipla para os competitivos 
 #Variável dependente: número de votos
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens, (ocupação) (partido) 
+#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens,  
 modelo_lm_com2016 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
                         data = competitivos_semNA2016)
 
@@ -223,7 +226,7 @@ plot(modelo_lm_com2016) #para ver os resíduos
 
 #Modelo de regressão logística para os competitivos (pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens, (ocupação) (partido) 
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens,
 modelo_logist_com2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
                              data =competitivos_semNA2016,
                              family = binomial(link = "logit"))
@@ -236,11 +239,11 @@ exp(cbind(
 
 
 #Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
-modelo_logist_com_interacao2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
+
+modelo_logist_com_interacao2016 <- glm(ELEITO ~ LOG_RECEITA *RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + RECEBEU_FE + RECEBEU_FP + RECEBEU_OR + DECLAROU_BENS + VALOR_BENS,
                                        data = competitivos_semNA2016,
                                        family = binomial(link = "logit"))
 
 summary(modelo_logist_com_interacao2016)
 
-
-#efeito marginal no logistico com interação *
+anova(modelo_logist_com2016, modelo_logist_com_interacao2016, test =  "Chisq") #para ver se a interação muda algo estatisticamente 

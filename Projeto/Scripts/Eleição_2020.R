@@ -205,6 +205,8 @@ modelo_logist_interacao2020 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA
 
 summary(modelo_logist_interacao2020)
 
+anova(modelo_logist_com2020, modelo_logist_com_interacao2020, test =  "Chisq") #para ver se a interação muda algo estatisticamente 
+
 
 
 #Modelo de regressão multipla para os competitivos 
@@ -242,6 +244,6 @@ modelo_logist_com_interacao2020 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRU
 
 summary(modelo_logist_com_interacao2020)
 
+anova(modelo_logist_com2020, modelo_logist_com_interacao2020, test =  "Chisq") #para ver se a interação muda algo estatisticamente 
 
-#efeito marginal no logistico com interação *
 
