@@ -1,6 +1,5 @@
 
-
-Install.packages("tidyverse") #Instalar biblioteca
+#install.packages("tidyverse") #Instalar biblioteca
 
 library(tidyverse)  #Carregar biblioteca
 
@@ -43,7 +42,7 @@ bens2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos
 banco_bens2024 <- bens2024 %>%
   filter(NM_UE %in% c("SÃO PAULO", "SAO PAULO")) %>%
   group_by(SQ_CANDIDATO) %>%
-  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO))
+  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO, na.rm = TRUE))
 
 
 
@@ -54,10 +53,10 @@ banco_bens2024 <- bens2024 %>%
 resultado2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\votacao_candidato_munzona_2024_SP.csv", fileEncoding = "latin1")
 
 banco_resultado2024 <- resultado2024 %>%
-  filter(NM_UE %in% c("SÃO PAULO", "Sao PAULO")) %>%
+  filter(NM_UE %in% c("SÃO PAULO", "SAO PAULO")) %>%
   filter(DS_CARGO == "Vereador") %>%
   group_by(SQ_CANDIDATO, DS_SIT_TOT_TURNO) %>%
-  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS))
+  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS, na.rm = TRUE))
 
 
 
@@ -71,7 +70,7 @@ banco_receita2024 <- receita2024 %>%
   filter(NM_UE == "SÃO PAULO") %>%
   filter(DS_CARGO == "Vereador") %>%
   group_by(SQ_CANDIDATO)  %>%
-  summarise(RECEITA_TOTAL = sum(VR_RECEITA),
+  summarise(RECEITA_TOTAL = sum(VR_RECEITA, na.rm = TRUE),
             FONTE_RECEITA = paste(unique(DS_FONTE_RECEITA), collapse = ", "),
             ORIGEM_RECEITA = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "))
 

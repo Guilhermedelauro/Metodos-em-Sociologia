@@ -1,6 +1,5 @@
 
-
-Install.packages("tidyverse") #Instala a biblioteca
+#install.packages("tidyverse") #Instala a biblioteca
 
 library(tidyverse)  #Carrega a biblioteca
 
@@ -32,7 +31,7 @@ bens2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos
 banco_bens2016 <- bens2016 %>%
   filter(NM_UE == "SÃO PAULO") %>%
   group_by(SQ_CANDIDATO) %>%          
-  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO))
+  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO, na.rm = TRUE))
 
 
 
@@ -46,7 +45,7 @@ banco_resultado2016 <- resultado2016 %>%
   filter(NM_UE == "SÃO PAULO") %>%
   filter(DS_CARGO == "Vereador") %>%
   group_by(SQ_CANDIDATO, DS_SIT_TOT_TURNO) %>%
-  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS))
+  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS, na.rm = TRUE))
 
 
 
@@ -62,7 +61,7 @@ banco_receita2016 <- receita2016 %>%
   filter(Nome.da.UE == "SÃO PAULO") %>%
   filter(Cargo == "Vereador") %>%
   group_by(Nome.candidato) %>%
-  summarise(RECEITA_TOTAL = sum(Valor.receita),
+  summarise(RECEITA_TOTAL = sum(Valor.receita, na.rm = TRUE),
             FONTE_RECEITA = paste(unique(Fonte.recurso), collapse = ", "),
             ORIGEM_RECEITA = paste(unique(Tipo.receita), collapse = ", "))
 
