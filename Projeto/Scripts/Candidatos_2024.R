@@ -72,7 +72,8 @@ banco_receita2024 <- receita2024 %>%
   filter(DS_CARGO == "Vereador") %>%
   group_by(SQ_CANDIDATO)  %>%
   summarise(RECEITA_TOTAL = sum(VR_RECEITA),
-            TIPO_RECEITA = paste(unique(DS_FONTE_RECEITA), collapse = ", "))
+            FONTE_RECEITA = paste(unique(DS_FONTE_RECEITA), collapse = ", "),
+            ORIGEM_RECEITA = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "))
 
 
 

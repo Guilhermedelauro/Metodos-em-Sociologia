@@ -62,7 +62,7 @@ banco_resultado2020 <- resultado2020 %>%
 #Importa o banco de dados sobre receita
 #Filtra por: (I) candidatos de São Paulo e (II) vereadores
 #Agrupa pelo SQ do candidato
-#Soma a receita total, a origem da receita e a fonte da receita para cada candidato
+#Soma a receita total e a fonte da receita para cada candidato
 receita2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\receitas_candidatos_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_receita2020 <- receita2020 %>%
@@ -70,7 +70,8 @@ banco_receita2020 <- receita2020 %>%
   filter(grepl("VEREADOR", DS_CARGO, ignore.case = TRUE)) %>%
   group_by(SQ_CANDIDATO) %>%
   summarise(RECEITA_TOTAL = sum(VR_RECEITA),
-            TIPO_RECEITA = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "))
+            FONTE_RECEITA = paste(unique(DS_FONTE_RECEITA), collapse = ", "),
+            ORIGEM_RECEITA = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "))
 
 
 

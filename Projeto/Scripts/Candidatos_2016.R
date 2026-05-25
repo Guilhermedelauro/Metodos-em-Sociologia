@@ -63,7 +63,8 @@ banco_receita2016 <- receita2016 %>%
   filter(Cargo == "Vereador") %>%
   group_by(Nome.candidato) %>%
   summarise(RECEITA_TOTAL = sum(Valor.receita),
-            TIPO_RECEITA = paste(unique(Tipo.receita), collapse = ", "))
+            FONTE_RECEITA = paste(unique(Fonte.recurso), collapse = ", "),
+            ORIGEM_RECEITA = paste(unique(Tipo.receita), collapse = ", "))
 
 banco_receita2016 <- banco_receita2016 %>%
   rename(NM_CANDIDATO = Nome.candidato)
