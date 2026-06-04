@@ -3,8 +3,6 @@
 
 library(tidyverse)  #Carrega a biblioteca
 
-
-
 #Importa o banco de dados dos candidatos e filtra por: 
 # (I) candidatos do munícipio São Paulo
 # (II) vereadores
@@ -13,14 +11,14 @@ library(tidyverse)  #Carrega a biblioteca
 candidatos2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\consulta_cand_2016_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2016 <- candidatos2016 %>%
-  filter(NM_UE == "SÃO PAULO") %>%
-  filter(DS_CARGO == "VEREADOR") %>%
-  filter(DS_SITUACAO_CANDIDATURA == "APTO")
+  filter(NM_UE == "SÃO PAULO",
+         DS_CARGO == "VEREADOR") 
 
 banco_candidatos_filtrado2016 <- banco_candidatos2016 %>%
   select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO, DS_SITUACAO_CANDIDATURA,ST_REELEICAO)
 
-
+banco_candidatos_filtrado2016 <- banco_candidatos_filtrado2016 %>%
+  mutate(nome_key = toupper(trimws(NM_CANDIDATO)))
 
 #Importa o banco de dados sobre bens
 #Filtra para o munícipio de São Paulo
@@ -42,10 +40,14 @@ banco_bens2016 <- bens2016 %>%
 resultado2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\votacao_candidato_munzona_2016_SP.csv", fileEncoding = "latin1")
 
 banco_resultado2016 <- resultado2016 %>%
-  filter(NM_UE == "SÃO PAULO") %>%
-  filter(DS_CARGO == "Vereador") %>%
-  group_by(SQ_CANDIDATO, DS_SIT_TOT_TURNO) %>%
-  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS, na.rm = TRUE))
+  filter(NM_UE == "SÃO PAULO",
+         DS_CARGO == "Vereador") %>%
+  mutate(DS_SIT_TOT_TURNO = trimws(DS_SIT_TOT_TURNO)) %>%
+  group_by(SQ_CANDIDATO) %>%
+  summarise(
+    TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS, na.rm = TRUE),
+    DS_SIT_TOT_TURNO = first(DS_SIT_TOT_TURNO),
+    .groups = "drop")
 
 
 
@@ -58,25 +60,28 @@ receita2016 <- read.table("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candid
 
 
 banco_receita2016 <- receita2016 %>%
-  filter(Nome.da.UE == "SÃO PAULO") %>%
-  filter(Cargo == "Vereador") %>%
+  filter(Nome.da.UE == "SÃO PAULO",
+         Cargo == "Vereador") %>%
   group_by(Nome.candidato) %>%
   summarise(RECEITA_TOTAL = sum(Valor.receita, na.rm = TRUE),
             FONTE_RECEITA = paste(unique(Fonte.recurso), collapse = ", "),
             ORIGEM_RECEITA = paste(unique(Tipo.receita), collapse = ", "))
 
 banco_receita2016 <- banco_receita2016 %>%
-  rename(NM_CANDIDATO = Nome.candidato)
+  mutate(nome_key = toupper(trimws(Nome.candidato))) 
 
 
 
 # Junta os bancos criado em um a partir do banco_candidatos_filtrado2016, que possui todos os filtros
 banco_final2016 <- banco_candidatos_filtrado2016 %>%
-  left_join(banco_bens2016, by = "SQ_CANDIDATO") %>%        
+  left_join(banco_bens2016, by = "SQ_CANDIDATO") %>%
   left_join(banco_resultado2016, by = "SQ_CANDIDATO") %>%
-  left_join(banco_receita2016, by = "NM_CANDIDATO")
+  left_join(banco_receita2016, by = "nome_key")
 
-
+banco_final2016 <- banco_final2016 %>%
+  filter(!is.na(TOTAL_VOTOS))
 
 #Salva em csv
 write.csv2(banco_final2016, "Banco_2016.csv",row.names = FALSE,fileEncoding = "latin1" )
+
+

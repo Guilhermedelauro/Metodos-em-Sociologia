@@ -22,9 +22,8 @@ banco_complementar2020 <- complementar2020 %>%
 candidatos2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\consulta_cand_2020_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2020 <- candidatos2020 %>%
-  filter(NM_UE %in% c("SÃO PAULO", "SAO PAULO")) %>%
-  filter(grepl("VEREADOR", DS_CARGO, ignore.case = TRUE)) %>%
-  filter(DS_SITUACAO_CANDIDATURA == "APTO")
+  filter(NM_UE =="SÃO PAULO", 
+         DS_CARGO == "VEREADOR") 
 
 banco_filtrado2020 <- banco_candidatos2020 %>%
   select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO, SG_PARTIDO, DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO,DS_SITUACAO_CANDIDATURA)
@@ -38,7 +37,7 @@ banco_filtrado2020 <- banco_candidatos2020 %>%
 bens2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\bem_candidato_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_bens2020 <- bens2020 %>%
-  filter(grepl("SÃO PAULO", NM_UE, ignore.case = TRUE)) %>%
+  filter(NM_UE =="SÃO PAULO") %>%
   group_by(SQ_CANDIDATO) %>%
   summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO, na.rm = TRUE))
 
@@ -51,8 +50,8 @@ banco_bens2020 <- bens2020 %>%
 resultado2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\votacao_candidato_munzona_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_resultado2020 <- resultado2020 %>%
-  filter(grepl("SÃO PAULO", NM_UE, ignore.case = TRUE)) %>%
-  filter(grepl("VEREADOR", DS_CARGO, ignore.case = TRUE)) %>%
+  filter(NM_UE =="SÃO PAULO",
+         DS_CARGO == "Vereador") %>%
   group_by(SQ_CANDIDATO, DS_SIT_TOT_TURNO) %>%
   summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS, na.rm = TRUE)) 
  
@@ -65,8 +64,8 @@ banco_resultado2020 <- resultado2020 %>%
 receita2020 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2020\\receitas_candidatos_2020_SP.csv", fileEncoding = "latin1" )
 
 banco_receita2020 <- receita2020 %>%
-  filter(grepl("SÃO PAULO", NM_UE, ignore.case = TRUE)) %>%
-  filter(grepl("VEREADOR", DS_CARGO, ignore.case = TRUE)) %>%
+  filter(NM_UE == "SÃO PAULO",
+        DS_CARGO =="Vereador") %>%
   group_by(SQ_CANDIDATO) %>%
   summarise(RECEITA_TOTAL = sum(VR_RECEITA, na.rm = TRUE),
             FONTE_RECEITA = paste(unique(DS_FONTE_RECEITA), collapse = ", "),
@@ -81,7 +80,8 @@ left_join(banco_bens2020, by = "SQ_CANDIDATO") %>%
   left_join(banco_receita2020, by = "SQ_CANDIDATO") %>%
   left_join(banco_complementar2020, by= "SQ_CANDIDATO")
 
-
+banco_final2020 <- banco_final2020 %>%
+  filter(!is.na(TOTAL_VOTOS))
 
 #Salva em csv
 write.csv2(banco_final2020, "Banco_2020.csv",row.names = FALSE,fileEncoding = "latin1" )
