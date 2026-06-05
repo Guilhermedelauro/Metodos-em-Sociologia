@@ -6,13 +6,12 @@ library(tidyverse)  #Carrega a biblioteca
 #Importa o banco de dados dos candidatos e filtra por: 
 # (I) candidatos do munícipio São Paulo
 # (II) vereadores
-# (III) que possuem a situação de candidatura apta
 #Em seguida, cria um banco de dados com as varíaveis desejadas
 candidatos2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\consulta_cand_2016_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2016 <- candidatos2016 %>%
-  filter(NM_UE == "SÃO PAULO",
-         DS_CARGO == "VEREADOR") 
+  filter(toupper(NM_UE) == "SÃO PAULO",
+         toupper(DS_CARGO) == "VEREADOR") 
 
 banco_candidatos_filtrado2016 <- banco_candidatos2016 %>%
   select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO, DS_SITUACAO_CANDIDATURA,ST_REELEICAO)
@@ -27,9 +26,11 @@ banco_candidatos_filtrado2016 <- banco_candidatos_filtrado2016 %>%
 bens2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\bem_candidato_2016_SP.csv", fileEncoding = "latin1")
 
 banco_bens2016 <- bens2016 %>%
-  filter(NM_UE == "SÃO PAULO") %>%
-  group_by(SQ_CANDIDATO) %>%          
-  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO, na.rm = TRUE))
+  filter(toupper(NM_UE) == "SÃO PAULO") %>%
+  group_by(SQ_CANDIDATO) %>%
+  summarise(
+    BENS_TOTAL = if (all(is.na(VR_BEM_CANDIDATO))) NA_real_
+    else sum(VR_BEM_CANDIDATO, na.rm = TRUE),.groups = "drop" )
 
 
 
@@ -40,8 +41,8 @@ banco_bens2016 <- bens2016 %>%
 resultado2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\votacao_candidato_munzona_2016_SP.csv", fileEncoding = "latin1")
 
 banco_resultado2016 <- resultado2016 %>%
-  filter(NM_UE == "SÃO PAULO",
-         DS_CARGO == "Vereador") %>%
+  filter(toupper(NM_UE) == "SÃO PAULO",
+         toupper(DS_CARGO) == "VEREADOR") %>%
   mutate(DS_SIT_TOT_TURNO = trimws(DS_SIT_TOT_TURNO)) %>%
   group_by(SQ_CANDIDATO) %>%
   summarise(
@@ -60,12 +61,15 @@ receita2016 <- read.table("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candid
 
 
 banco_receita2016 <- receita2016 %>%
-  filter(Nome.da.UE == "SÃO PAULO",
-         Cargo == "Vereador") %>%
+  filter(toupper(Nome.da.UE) == "SÃO PAULO",
+         toupper(Cargo) == "VEREADOR") %>%
   group_by(Nome.candidato) %>%
-  summarise(RECEITA_TOTAL = sum(Valor.receita, na.rm = TRUE),
-            FONTE_RECEITA = paste(unique(Fonte.recurso), collapse = ", "),
-            ORIGEM_RECEITA = paste(unique(Tipo.receita), collapse = ", "))
+  summarise(
+    RECEITA_TOTAL = if (all(is.na(Valor.receita))) NA_real_
+    else sum(Valor.receita, na.rm = TRUE),
+    FONTE_RECEITA = str_flatten_comma(unique(na.omit(Fonte.recurso))),
+    ORIGEM_RECEITA = str_flatten_comma(unique(na.omit(Tipo.receita))),
+    .groups = "drop")
 
 banco_receita2016 <- banco_receita2016 %>%
   mutate(nome_key = toupper(trimws(Nome.candidato))) 

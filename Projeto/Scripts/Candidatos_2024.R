@@ -6,7 +6,6 @@ library(tidyverse)  #Carregar biblioteca
 
 
 #Importa o banco de dados complementar sobre os candidatos
-#Filtra para os candidatos que na situação do julgamento da urna estão deferidos ou deferidos com recurso
 #Cria um novo banco com aas varíaveis desejadas
 complementar2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\consulta_cand_complementar_2024_SP.csv")
 
@@ -22,8 +21,8 @@ banco_complementar_filtrado2024 <- complementar2024 %>%
 candidatos2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\consulta_cand_2024_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2024 <- candidatos2024 %>%
-  filter(NM_UE == "SÃO PAULO",
-         DS_CARGO == "VEREADOR") 
+  filter(toupper(NM_UE) == "SÃO PAULO",
+         toupper(DS_CARGO) == "VEREADOR") 
 
 banco_candidatos_filtrado2024 <- banco_candidatos2024 %>%
   select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO, DS_SITUACAO_CANDIDATURA)
@@ -37,9 +36,10 @@ banco_candidatos_filtrado2024 <- banco_candidatos2024 %>%
 bens2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\bem_candidato_2024_SP.csv", fileEncoding = "latin1")
 
 banco_bens2024 <- bens2024 %>%
-  filter(NM_UE == "SÃO PAULO") %>%
+  filter(toupper(NM_UE) == "SÃO PAULO") %>%
   group_by(SQ_CANDIDATO) %>%
-  summarise(BENS_TOTAL = sum(VR_BEM_CANDIDATO, na.rm = TRUE))
+  summarise(BENS_TOTAL = if (all(is.na(VR_BEM_CANDIDATO))) NA_real_ else sum(VR_BEM_CANDIDATO, na.rm = TRUE),
+            .groups = "drop")
 
 
 
@@ -50,10 +50,12 @@ banco_bens2024 <- bens2024 %>%
 resultado2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\votacao_candidato_munzona_2024_SP.csv", fileEncoding = "latin1")
 
 banco_resultado2024 <- resultado2024 %>%
-  filter(NM_UE == "SÃO PAULO", 
-         DS_CARGO == "Vereador") %>%
-  group_by(SQ_CANDIDATO, DS_SIT_TOT_TURNO) %>%
-  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS, na.rm = TRUE))
+  filter(toupper(NM_UE) == "SÃO PAULO", 
+         toupper(DS_CARGO) == "VEREADOR") %>%
+  group_by(SQ_CANDIDATO) %>%
+  summarise(TOTAL_VOTOS = sum(QT_VOTOS_NOMINAIS_VALIDOS, na.rm = TRUE),
+            DS_SIT_TOT_TURNO = first(DS_SIT_TOT_TURNO),
+            .groups = "drop")
 
 
 
@@ -64,12 +66,13 @@ banco_resultado2024 <- resultado2024 %>%
 receita2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\receitas_candidatos_2024_SP.csv", fileEncoding = "latin1")
 
 banco_receita2024 <- receita2024 %>%
-  filter(NM_UE == "SÃO PAULO",
-         DS_CARGO == "Vereador") %>%
+  filter(toupper(NM_UE) == "SÃO PAULO",
+         toupper(DS_CARGO) == "VEREADOR") %>%
   group_by(SQ_CANDIDATO)  %>%
-  summarise(RECEITA_TOTAL = sum(VR_RECEITA, na.rm = TRUE),
+  summarise(RECEITA_TOTAL = if (all(is.na(VR_RECEITA))) NA_real_ else sum(VR_RECEITA, na.rm = TRUE),
             FONTE_RECEITA = paste(unique(DS_FONTE_RECEITA), collapse = ", "),
-            ORIGEM_RECEITA = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "))
+            ORIGEM_RECEITA = paste(unique(DS_ORIGEM_RECEITA), collapse = ", "),
+            .groups = "drop")
 
 
 
