@@ -23,7 +23,7 @@ candidatos_2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\R pasta\\Metodos-em-So
 
 candidatos_filtrado_2016 <- candidatos_2016 %>%
   filter(DS_COR_RACA %in% c("PARDA", "PRETA", "BRANCA")) %>%
-  mutate(RACA_AGRUPADA = if_else(DS_COR_RACA == "BRANCA", "Branco", "Não-Branco"))
+  mutate(RACA_AGRUPADA = if_else(DS_COR_RACA == "BRANCA", "Branco", "Não Branco"))
 
 tabela_raca2016 <- table(candidatos_2016$DS_COR_RACA) #vê a quantidade de candidatos por raça  
 
@@ -51,9 +51,10 @@ candidatos_competitivos2016 <- candidatos_geral2016 %>%
 candidatos_competitivos2016 %>%   #mostra o máximo e mínimo de cada decil
   group_by(DECIL_RECEITA) %>%
   summarise(
-    minimo = min(TOTAL_VOTOS, na.rm = TRUE),
-    maximo = max(TOTAL_VOTOS, na.rm = TRUE),
+    minimo = min(RECEITA_TOTAL, na.rm = TRUE),
+    maximo = max(RECEITA_TOTAL, na.rm = TRUE),
     .groups = "drop")
+
 
 #------------
 # 3.Tratamento dos bancos de dados
@@ -70,13 +71,15 @@ candidatos_semNA2016 <- candidatos_geral2016 %>%
          DS_GENERO = as.factor(DS_GENERO),
          DS_GRAU_INSTRUCAO = as.factor(DS_GRAU_INSTRUCAO)) %>%
   mutate(ELEITO = if_else(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA"), 1,0) ) %>%
+  mutate(
+    RECEITA_TOTAL = replace_na(RECEITA_TOTAL, 0),
+    VALOR_BENS = replace_na(as.numeric(BENS_TOTAL), 0)
+  ) %>%
   filter(
-    !is.na(DS_SIT_TOT_TURNO),
+    !is.na(DS_SIT_TOT_TURNO),          
     !is.na(COMPETITIVO),
-    !is.na(TOTAL_VOTOS),
-    !is.na(RECEITA_TOTAL)) %>%
-  mutate(DECLAROU_BENS = if_else(is.na(BENS_TOTAL), 0, 1),   
-         VALOR_BENS = if_else(is.na(BENS_TOTAL),0, as.numeric(BENS_TOTAL)))
+    !is.na(TOTAL_VOTOS))
+    
 
 colSums(is.na(candidatos_semNA2016)) #Verifica onde tem NA
 
@@ -95,13 +98,14 @@ competitivos_semNA2016<- candidatos_competitivos2016 %>%
     DS_GENERO = as.factor(DS_GENERO),
     DS_GRAU_INSTRUCAO = as.factor(DS_GRAU_INSTRUCAO)) %>%
   mutate(ELEITO = if_else(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA"), 1,0) ) %>%
+  mutate(
+    RECEITA_TOTAL = replace_na(RECEITA_TOTAL, 0),
+    VALOR_BENS = replace_na(as.numeric(BENS_TOTAL), 0)
+  ) %>%
   filter(
     !is.na(DS_SIT_TOT_TURNO),
     !is.na(COMPETITIVO),
-    !is.na(TOTAL_VOTOS),
-    !is.na(RECEITA_TOTAL)) %>%
-  mutate(DECLAROU_BENS = if_else(is.na(BENS_TOTAL), 0, 1),   
-         VALOR_BENS = if_else(is.na(BENS_TOTAL),0, as.numeric(BENS_TOTAL)))
+    !is.na(TOTAL_VOTOS))
 
 
 colSums(is.na(competitivos_semNA2016)) #Verifica onde tem NA
@@ -113,27 +117,40 @@ str(competitivos_semNA2016) #verifica o tipo de cada variável
 # 4.Operações com os bancos de dados
 
 #Faz a proporção de candidatos brancos e não-brancos
-prop.table(table(candidatos_geral2016$RACA_AGRUPADA)) * 100
+prop.table(table(candidatos_geral2016$RACA_AGRUPADA)) * 100 
+
+num_cand2016 <- table(candidatos_geral2016$RACA_AGRUPADA) %>%
+  as.data.frame()
 
 #Faz a proporção de candidatos brancos e não-brancos para os competitivos
 candidatos_competitivos2016 %>%
   filter(COMPETITIVO == "Sim") %>%
-  with(prop.table(table(RACA_AGRUPADA)) * 100)
+  with(prop.table(table(RACA_AGRUPADA)) * 100) 
+  
+num_comp2016 <-candidatos_competitivos2016 %>%
+  filter(COMPETITIVO == "Sim") %>%
+  count(RACA_AGRUPADA) %>%
+  as.data.frame()
   
 #Faz a proporção de candidatos brancos e não-brancos para os eleitos 
 candidatos_geral2016 %>%
   filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA")) %>%
-  with(prop.table(table(RACA_AGRUPADA)) * 100)
+  with(prop.table(table(RACA_AGRUPADA)) * 100) 
+
+num_elei2016 <- candidatos_geral2016 %>%
+  filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA")) %>%
+  count(RACA_AGRUPADA) %>%
+  as.data.frame()
 
 
 #Coeficiente r para Receita de campanha e número de votos para os candidatos
-candidatos_semNA2016 %>%
+r_cand_2016 <- candidatos_semNA2016 %>%
   group_by(RACA_AGRUPADA) %>%
   summarise(cor = cor.test(TOTAL_VOTOS, RECEITA_TOTAL)$estimate,
             p_valor = cor.test(TOTAL_VOTOS, RECEITA_TOTAL)$p.value)
 
 #Coeficiente r para Receita de campanha e número de votos para os competitivos
-competitivos_semNA2016 %>%
+r_comp_2016 <- competitivos_semNA2016 %>%
   group_by(RACA_AGRUPADA) %>%
   summarise(cor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$estimate,
             p_valor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$p.value)
@@ -163,8 +180,8 @@ tabela_partido_competitivo2016 <- competitivos_semNA2016 %>%
 
 #Modelo de regressão multipla para os candidatos 
 #Variável dependente: número de votos
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens
-modelo_lm2016 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição,  valor dos bens
+modelo_lm2016 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                     data = candidatos_semNA2016)
 
 summary(modelo_lm2016) #mostra o resultado do modelo
@@ -177,21 +194,19 @@ plot(modelo_lm2016) #para ver os resíduos
 
 #Modelo de regressão logística para os candidatos(pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens
-modelo_logist2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, valor dos bens
+modelo_logist2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                          data = candidatos_semNA2016,
                          family = binomial(link = "logit"))
 
 summary(modelo_logist2016)
 
 
-exp(cbind(
-  OR = coef(modelo_logist2016),
-  confint(modelo_logist2016)))
+tidy(modelo_logist2016, exponentiate = TRUE, conf.int = TRUE, conf.method = "wald")
 
 #Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
 
-modelo_logist_interacao2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) *RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+modelo_logist_interacao2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) *RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                                    data = candidatos_semNA2016,
                                    family = binomial(link = "logit"))
 
@@ -202,8 +217,8 @@ anova(modelo_logist2016, modelo_logist_interacao2016, test =  "Chisq") #para ver
 
 #Modelo de regressão multipla para os competitivos 
 #Variável dependente: número de votos
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens 
-modelo_lm_com2016 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, valor dos bens 
+modelo_lm_com2016 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                         data = competitivos_semNA2016)
 
 summary(modelo_lm_com2016) #mostra o resultado do modelo
@@ -216,20 +231,18 @@ plot(modelo_lm_com2016) #para ver os resíduos
 
 #Modelo de regressão logística para os competitivos (pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens
-modelo_logist_com2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, valor dos bens
+modelo_logist_com2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                              data =competitivos_semNA2016,
                              family = binomial(link = "logit"))
 
 summary(modelo_logist_com2016)
 
-exp(cbind(
-  OR = coef(modelo_logist_com2016),
-  confint(modelo_logist_com2016)))
+tidy(modelo_logist_com2016, exponentiate = TRUE, conf.int = TRUE, conf.method = "wald")
 
 #Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
 
-modelo_logist_com_interacao2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+modelo_logist_com_interacao2016 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                                        data = competitivos_semNA2016,
                                        family = binomial(link = "logit"))
 

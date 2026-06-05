@@ -23,7 +23,7 @@ candidatos_2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\R pasta\\Metodos-em-So
 
 candidatos_filtrado_2024 <- candidatos_2024 %>%
   filter(DS_COR_RACA %in% c("PARDA", "PRETA", "BRANCA")) %>%
-  mutate(RACA_AGRUPADA = if_else(DS_COR_RACA == "BRANCA", "Branco", "Não-Branco"))
+  mutate(RACA_AGRUPADA = if_else(DS_COR_RACA == "BRANCA", "Branco", "Não Branco"))
 
 tabela_raca2024 <- table(candidatos_2024$DS_COR_RACA) #vê a quantidade de candidatos por raça
 
@@ -73,14 +73,15 @@ candidatos_semNA2024 <- candidatos_geral2024 %>%
     DS_GENERO = as.factor(DS_GENERO),
     DS_GRAU_INSTRUCAO = as.factor(DS_GRAU_INSTRUCAO)) %>%
   mutate(ELEITO = if_else(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA"), 1,0) ) %>%
+  mutate(
+    RECEITA_TOTAL = replace_na(RECEITA_TOTAL, 0),
+    VALOR_BENS = replace_na(as.numeric(BENS_TOTAL), 0)
+  ) %>%
   filter(
     !is.na(DS_SIT_TOT_TURNO),
     !is.na(COMPETITIVO),
-    !is.na(TOTAL_VOTOS),
-    !is.na(RECEITA_TOTAL)) %>%
-  mutate(DECLAROU_BENS = if_else(is.na(BENS_TOTAL), 0, 1),   
-         VALOR_BENS = if_else(is.na(BENS_TOTAL),0, as.numeric(BENS_TOTAL)))
-
+    !is.na(TOTAL_VOTOS))
+ 
 colSums(is.na(candidatos_semNA2024)) #Verifica onde tem NA
 
 str(candidatos_semNA2024) #verifica o tipo de cada variável
@@ -98,14 +99,16 @@ competitivos_semNA2024<- candidatos_competitivos2024 %>%
     DS_GENERO = as.factor(DS_GENERO),
     DS_GRAU_INSTRUCAO = as.factor(DS_GRAU_INSTRUCAO)) %>%
   mutate(ELEITO = if_else(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA"), 1,0) ) %>%
+  mutate(
+    RECEITA_TOTAL = replace_na(RECEITA_TOTAL, 0),
+    VALOR_BENS = replace_na(as.numeric(BENS_TOTAL), 0)
+  ) %>%
   filter(
     !is.na(DS_SIT_TOT_TURNO),
     !is.na(COMPETITIVO),
-    !is.na(TOTAL_VOTOS),
-    !is.na(RECEITA_TOTAL)) %>%
-  mutate(DECLAROU_BENS = if_else(is.na(BENS_TOTAL), 0, 1),   
-         VALOR_BENS = if_else(is.na(BENS_TOTAL),0, as.numeric(BENS_TOTAL)))
-
+    !is.na(TOTAL_VOTOS))
+     
+  
 
 colSums(is.na(competitivos_semNA2024)) #Verifica onde tem NA
 
@@ -117,27 +120,41 @@ str(competitivos_semNA2024) #verifica o tipo de cada variável
 # 4.Operações com os bancos de dados
 
 #Faz a proporção de candidatos brancos e não-brancos
-prop.table(table(candidatos_geral2024$RACA_AGRUPADA)) * 100
+prop.table(table(candidatos_geral2024$RACA_AGRUPADA)) * 100 
+
+num_cand2024 <- table(candidatos_geral2024$RACA_AGRUPADA) %>%
+  as.data.frame()
 
 #Faz a proporção de candidatos brancos e não-brancos competitivos
 candidatos_geral2024 %>%
   filter(COMPETITIVO == "Sim") %>%
-  with(prop.table(table(RACA_AGRUPADA)) * 100)
+  with(prop.table(table(RACA_AGRUPADA)) * 100) 
+
+num_comp2024 <- candidatos_geral2024 %>%
+  filter(COMPETITIVO == "Sim") %>%
+  count(RACA_AGRUPADA) %>%
+  as.data.frame()
 
 #Faz a proporção de candidatos brancos e não-brancos eleitos 
 candidatos_geral2024 %>%
   filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA")) %>%
-  with(prop.table(table(RACA_AGRUPADA)) * 100)
+  with(prop.table(table(RACA_AGRUPADA)) * 100) 
+
+num_elei2024 <- candidatos_geral2024 %>%
+  filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA")) %>%
+  count(RACA_AGRUPADA) %>%
+  as.data.frame()
+
 
 
 #Coeficiente r para Receita de campanha e número de votos para os candidatos
-candidatos_semNA2024 %>%
+r_cand_2024 <- candidatos_semNA2024 %>%
   group_by(RACA_AGRUPADA) %>%
-  summarise(cor = cor.test(TOTAL_VOTOS, RECEITA_TOTAL)$estimate,
-    p_valor = cor.test(TOTAL_VOTOS, RECEITA_TOTAL)$p.value)
+  summarise(cor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$estimate,
+            p_valor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$p.value)
 
 #Coeficiente r para Receita de campanha e número de votos para os competitivos
-competitivos_semNA2024 %>%
+r_comp_2024 <- competitivos_semNA2024 %>%
   group_by(RACA_AGRUPADA) %>%
   summarise(cor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$estimate,
             p_valor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$p.value)
@@ -167,8 +184,8 @@ tabela_partido_competitivo2024 <- competitivos_semNA2024 %>%
 
 #Modelo de regressão multipla para os candidatos 
 #Variável dependente: número de votos
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens 
-modelo_lm2024 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, valor dos bens 
+modelo_lm2024 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                 data = candidatos_semNA2024)
 
 summary(modelo_lm2024) #mostra o resultado do modelo
@@ -181,20 +198,18 @@ plot(modelo_lm2024) #para ver os resíduos
 
 #Modelo de regressão logística para os candidatos(pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens
-modelo_logist2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, valor dos bens
+modelo_logist2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                   data = candidatos_semNA2024,
                   family = binomial(link = "logit"))
 
 summary(modelo_logist2024)
 
 
-exp(cbind(
-  OR = coef(modelo_logist2024),
-  confint(modelo_logist2024)))
+tidy(modelo_logist2024, exponentiate = TRUE, conf.int = TRUE, conf.method = "wald")
 
 #Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
-modelo_logist_interacao2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+modelo_logist_interacao2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                        data = candidatos_semNA2024,
                        family = binomial(link = "logit"))
 
@@ -205,8 +220,8 @@ anova(modelo_logist2024, modelo_logist_interacao2024, test =  "Chisq") #para ver
 
 #Modelo de regressão multipla para os competitivos 
 #Variável dependente: número de votos
-#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, declarou bens, valor dos bens 
-modelo_lm_com2024 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, valor dos bens 
+modelo_lm_com2024 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS + 1),
                 data = competitivos_semNA2024)
 
 summary(modelo_lm_com2024) #mostra o resultado do modelo
@@ -219,19 +234,17 @@ plot(modelo_lm_com2024) #para ver os resíduos
 
 #Modelo de regressão logística para os competitivos (pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
-#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, declarou bens, valor dos bens, 
-modelo_logist_com2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+#Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, valor dos bens, 
+modelo_logist_com2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                      data =competitivos_semNA2024,
                      family = binomial(link = "logit"))
 
 summary(modelo_logist_com2024)
 
-exp(cbind(
-  OR = coef(modelo_logist_com2024),
-  confint(modelo_logist_com2024)))
+tidy(modelo_logist_com2024, exponentiate = TRUE, conf.int = TRUE, conf.method = "wald")
 
 #Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
-modelo_logist_com_interacao2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + DECLAROU_BENS + VALOR_BENS,
+modelo_logist_com_interacao2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                        data = competitivos_semNA2024,
                        family = binomial(link = "logit"))
 
