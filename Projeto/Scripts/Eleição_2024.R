@@ -6,7 +6,9 @@
 #install.packages("broom")
 #install.packages("car")
 #install.packages("marginaleffects")
+#install.packages("logistf")
 
+library(logistf)
 library(tidyverse)  #Carregar as bibliotecas
 library(janitor)
 library(broom)
@@ -40,24 +42,6 @@ ultimo_eleito2024 <- min(eleitos2024$TOTAL_VOTOS)
 candidatos_geral2024 <- candidatos_filtrado_2024 %>%    
   mutate(COMPETITIVO = if_else(TOTAL_VOTOS >= 0.2 * ultimo_eleito2024, "Sim", "Não"))
 
-
-#Cria uma nova base, onde competitivos estão divididos em decis a partir da receita
-candidatos_competitivos2024 <- candidatos_geral2024 %>%
-  filter(COMPETITIVO == "Sim") %>%                     
-  arrange(RECEITA_TOTAL) %>%
-  mutate(DECIL_RECEITA = ntile(RECEITA_TOTAL, 10)) 
-  
-candidatos_competitivos2024 %>%  #Mostra o máximo e mínimo de cada decil
- group_by(DECIL_RECEITA) %>%
-  summarise(
-    minimo = min(RECEITA_TOTAL, na.rm = TRUE),
-    maximo = max(RECEITA_TOTAL, na.rm = TRUE),
-    .groups = "drop")
-
-
-colSums(is.na(candidatos_filtrado_2024)) #Verifica onde tem NA
-unique(candidatos_filtrado_2024$ORIGEM_RECEITA)
-
 #------------
 # 3.Tratamento dos bancos de dados
 
@@ -86,34 +70,9 @@ colSums(is.na(candidatos_semNA2024)) #Verifica onde tem NA
 
 str(candidatos_semNA2024) #verifica o tipo de cada variável
 
-
-#Trata da base de dados dos candidatos competitivos
-#Transforma algumas variáveis desejadas em factor
-#Cria uma nova variável que diz se foi eleito (1) ou não (0)
-#Remove os casos NA, com exceção dos Bens
-#Cria varíavies que dizem se aquele candidato possui aquele tipo de receita(fundo especial, fundo partidário ou outros recursos)(1) ou não possui (0) 
-#Cria uma variável que diz se o candidato declarou bens(1) ou não(0) e uma variável que diz o valor dos bens, com 0 no lugar de NA
-competitivos_semNA2024<- candidatos_competitivos2024 %>%
-  mutate(RACA_AGRUPADA = as.factor(RACA_AGRUPADA),
-    ST_REELEICAO = as.factor(ST_REELEICAO),
-    DS_GENERO = as.factor(DS_GENERO),
-    DS_GRAU_INSTRUCAO = as.factor(DS_GRAU_INSTRUCAO)) %>%
-  mutate(ELEITO = if_else(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA"), 1,0) ) %>%
-  mutate(
-    RECEITA_TOTAL = replace_na(RECEITA_TOTAL, 0),
-    VALOR_BENS = replace_na(as.numeric(BENS_TOTAL), 0)
-  ) %>%
-  filter(
-    !is.na(DS_SIT_TOT_TURNO),
-    !is.na(COMPETITIVO),
-    !is.na(TOTAL_VOTOS))
-     
-  
-
-colSums(is.na(competitivos_semNA2024)) #Verifica onde tem NA
-
-str(competitivos_semNA2024) #verifica o tipo de cada variável
-
+#Cria uma nova base, onde competitivos estão divididos em decis a partir da receita
+competitivos_semNA2024 <- candidatos_semNA2024 %>%
+  filter(COMPETITIVO == "Sim")
 
 
 #----------
@@ -160,15 +119,18 @@ r_comp_2024 <- competitivos_semNA2024 %>%
             p_valor = cor.test(TOTAL_VOTOS,RECEITA_TOTAL)$p.value)
 
 
-#Faz a proporção de candidatos competitivos brancos e não-brancos a cada decil de receita
-tabela_decil_receita2024 <- competitivos_semNA2024 %>%
-  count(RACA_AGRUPADA, DECIL_RECEITA) %>%
-  group_by(DECIL_RECEITA) %>%
-  mutate(prop = n / sum(n)) 
+#Faz o número de candidatos competitivos brancos e não-brancos por receiita
+tabela_comp_receita_2024 <-competitivos_semNA2024%>%
+  mutate(FAIXA_RECEITA = cut(RECEITA_TOTAL, 
+                             breaks = c(-1, 0, 1000, 10000, 100000, Inf), 
+                             labels = c("Sem receita", "1–1.000", "1.001–10.000", "10.001–100.000", "Mais de 100.000"),
+                             include.lowest = TRUE)) %>%
+  count(FAIXA_RECEITA, RACA_AGRUPADA) %>%
+  group_by(FAIXA_RECEITA) %>%
+  mutate(prop = n / sum(n) * 100) %>%
+  ungroup()
 
-tabela_decil_receita2024 %>%   #Para garantir q a soma de cada decil da 1 
-  group_by(DECIL_RECEITA) %>%
-  summarise(soma = sum(prop))
+print(tabela_comp_receita_2024)
 
 
 #Conta o número de brancos e não brancos por partido para os candidatos
@@ -185,37 +147,38 @@ tabela_partido_competitivo2024 <- competitivos_semNA2024 %>%
 #Modelo de regressão multipla para os candidatos 
 #Variável dependente: número de votos
 #Variáveis independentes: receita, gênero, branco ou não-branco, grau de instrução, reeleição, valor dos bens 
-modelo_lm2024 <- lm(log(TOTAL_VOTOS +1) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
+modelo_lm2024 <- lm(log(TOTAL_VOTOS + 1 ) ~ log(RECEITA_TOTAL +1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
                 data = candidatos_semNA2024)
 
 summary(modelo_lm2024) #mostra o resultado do modelo
 
 vif(modelo_lm2024) #vê se as variáveis independentes estão muito correlacionadas
 
-tidy(modelo_lm2024, conf.int = TRUE) #visualiza os dados brutos
-
 plot(modelo_lm2024) #para ver os resíduos 
 
 #Modelo de regressão logística para os candidatos(pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
 #Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, valor dos bens
-modelo_logist2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
-                  data = candidatos_semNA2024,
-                  family = binomial(link = "logit"))
+
+modelo_logist2024 <- logistf(
+  ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS + 1),
+  data = candidatos_semNA2024)
 
 summary(modelo_logist2024)
 
+exp(coef(modelo_logist2024))       # Odds Ratio
+exp(confint(modelo_logist2024))   # Intervalo de Confiança dos Odds Ratio
 
-tidy(modelo_logist2024, exponentiate = TRUE, conf.int = TRUE, conf.method = "wald")
 
 #Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
-modelo_logist_interacao2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
-                       data = candidatos_semNA2024,
-                       family = binomial(link = "logit"))
+modelo_logist_interacao2024 <- logistf(
+  ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS + 1),
+  data = candidatos_semNA2024)
+
 
 summary(modelo_logist_interacao2024)
 
-anova(modelo_logist2024, modelo_logist_interacao2024, test =  "Chisq") #para ver se a interação muda algo estatisticamente 
+drop1(modelo_logist_interacao2024) #para ver se a interação muda algo estatisticamente 
 
 
 #Modelo de regressão multipla para os competitivos 
@@ -228,27 +191,26 @@ summary(modelo_lm_com2024) #mostra o resultado do modelo
 
 vif(modelo_lm_com2024) #vê se as variáveis independentes estão muito correlacionadas
 
-tidy(modelo_lm_com2024, conf.int = TRUE)  #visualiza os dados brutos
-
 plot(modelo_lm_com2024) #para ver os resíduos 
 
 #Modelo de regressão logística para os competitivos (pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
 #Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, valor dos bens, 
-modelo_logist_com2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
-                     data =competitivos_semNA2024,
-                     family = binomial(link = "logit"))
+modelo_logist_com2024 <- logistf(
+  ELEITO ~ log(RECEITA_TOTAL + 1) + RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS + 1),
+  data = competitivos_semNA2024)
 
 summary(modelo_logist_com2024)
 
-tidy(modelo_logist_com2024, exponentiate = TRUE, conf.int = TRUE, conf.method = "wald")
+exp(coef(modelo_logist_com2024))       # Odds Ratio
+exp(confint(modelo_logist_com2024))   # Intervalo de Confiança dos Odds Ratio
 
 #Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
-modelo_logist_com_interacao2024 <- glm(ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS +1),
-                       data = competitivos_semNA2024,
-                       family = binomial(link = "logit"))
+modelo_logist_com_interacao2024 <- logistf(
+  ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(VALOR_BENS + 1),
+  data = competitivos_semNA2024)
 
 summary(modelo_logist_com_interacao2024)
 
-anova(modelo_logist_com2024, modelo_logist_com_interacao2024, test =  "Chisq") #para ver se a interação muda algo estatisticamente 
+drop1(modelo_logist_com_interacao2024) #para ver se a interação muda algo estatisticamente 
 
