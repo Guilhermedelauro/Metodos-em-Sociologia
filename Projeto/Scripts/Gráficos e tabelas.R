@@ -1,11 +1,11 @@
 
 # 1. Bibliotecas
-install.packages("ggplot2")
+#install.packages("ggplot2")
+#install.packages("pandoc")
+#install.packages("modelsummary")
+#install.packages("openxlsx")
 
-install.packages("pandoc")
-install.packages("modelsummary")
-
-
+library(openxlsx)
 library(ggplot2)
 library(tidyverse)
 library (flextable)
@@ -19,6 +19,9 @@ source("C:\\Users\\guide\\OneDrive\\R pasta\\Metodos-em-Sociologia\\Projeto\\Scr
 source("C:\\Users\\guide\\OneDrive\\R pasta\\Metodos-em-Sociologia\\Projeto\\Scripts\\Eleição_2024.R")
 
 #3. Gráficos e Tabelas 
+
+#Fonte
+windowsFonts(Times = windowsFont("Times New Roman"))
 
 #gráfico de raça por ano
 tabela_raca2016 <- as.data.frame(tabela_raca2016)
@@ -87,14 +90,13 @@ tabela_candidato <- flextable(tabela_candidato) %>%
     "* Número de candidatos",
     "** Porcentagem de candidatos",
     "*** Variação do número de candidatos de 2016 para 2024")) %>%
-  font(fontname = "Times New Roman",part = "all") 
+  font(fontname = "Times",part = "all") 
 
 
 
 save_as_image(tabela_candidato, path="tabela_candidato.png")
 
 #tabela raça competitivos 
-
 
 num_comp2016$Ano <- 2016
 num_comp2020$Ano <- 2020
@@ -219,7 +221,7 @@ print(tabela_r_cand)
 save_as_image(tabela_r_cand, path="tabela_r_cand.png")
 
 
-#Coeficiente r receita e númerod e votos competitivos 
+#Coeficiente r receita e números de votos competitivos 
 
 r_comp_2016$Ano <- 2016
 r_comp_2020$Ano <- 2020
@@ -254,129 +256,229 @@ print(tabela_r_comp)
 save_as_image(tabela_r_comp, path="tabela_r_comp.png")
 
 
+#Decil receita de campanha para os candidatos 
+decil_receita_corte_cand2016$Ano <- 2016
+decil_receita_corte_cand2020$Ano <- 2020
+decil_receita_corte_cand2024$Ano <- 2024
 
-#divisão receita 2016
-windowsFonts(
-  Times = windowsFont("Times New Roman")
-)
+decil_receita_corte_junto_cand <- rbind(decil_receita_corte_cand2016, decil_receita_corte_cand2020, decil_receita_corte_cand2024)
 
-ggplot(tabela_comp_receita_2016, aes(x = FAIXA_RECEITA, y = prop / 100, fill = RACA_AGRUPADA)) +
-  geom_col(position = "stack") +
-  scale_y_continuous(labels = scales::percent,  limits = c(0, 1)) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_family = "Times", base_size = 12) +   
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1) # Rotaciona os rótulos longos
+decil_receita_corte_junto_cand <- decil_receita_corte_junto_cand %>%
+  pivot_longer(
+    cols = starts_with("q"),
+    names_to = "decil",
+    values_to = "valor") %>%
+  mutate(decil = factor(decil, levels = c("q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10")))
+
+ggplot(decil_receita_corte_junto_cand, #em log
+       aes(x = decil, y = log(valor), color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    x = "Divisão Decil",
+    y = "Log(receita de campanha)",
+    color = "Ano"
   ) +
-  labs(x = "Faixa de Receita", y = "Proporção", fill = "Raça") 
+  theme_minimal(base_family = "Times", base_size = 12)
 
-
-candidatos_semNA2016$FAIXA_RECEITA <- cut(
-  candidatos_semNA2016$RECEITA_TOTAL, 
-  breaks = c(-1, 0, 1000, 10000, 100000, Inf), 
-  labels = c(
-    "Sem receita", 
-    "1–1.000", 
-    "1.001–10.000", 
-    "10.001–100.000", 
-    "Mais de 100.000"),
-  include.lowest = TRUE)
-
-
-
-ggplot(candidatos_semNA2016, aes(x = FAIXA_RECEITA, fill = RACA_AGRUPADA)) +
-  geom_bar(position = "dodge") +
-  labs(x = "Receita",
-       y = "Quantidade de candidatos",
-       fill = "Raça") +
-  theme_minimal(base_family = "Times", base_size = 12) +
-  scale_fill_brewer(palette = "Set2") +
-  theme(legend.position = "bottom", panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),panel.grid.major.y = element_line(colour = "grey85",linewidth = 0.3)) 
-
-
-  
-
-#divisão receita 2020
-
-ggplot(tabela_comp_receita_2020, aes(x = FAIXA_RECEITA, y = prop / 100, fill = RACA_AGRUPADA)) +
-  geom_col(position = "fill") +
-  scale_y_continuous(labels = scales::percent,  limits = c(0, 1)) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_family = "Times", base_size = 12) +   
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1) # Rotaciona os rótulos longos
+ggplot(decil_receita_corte_junto_cand, #escala normal
+       aes(x = decil, y = valor, color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  scale_y_continuous(labels = label_number(big.mark = ".", decimal.mark = ",")) +
+  labs(
+    x = "Divisão Decil",
+    y = "Receita de campanha",
+    color = "Ano"
   ) +
-  labs(x = "Faixa de Receita", y = "Proporção", fill = "Raça")
+  theme_minimal(base_family = "Times", base_size = 12)
 
+#
+tabela_decil_2016$Ano <- 2016
+tabela_decil_2020$Ano <- 2020
+tabela_decil_2024$Ano <- 2024
 
-candidatos_semNA2020$FAIXA_RECEITA <- cut(
-  candidatos_semNA2020$RECEITA_TOTAL, 
-  breaks = c(-1, 0, 1000, 10000, 100000, Inf), 
-  labels = c(
-    "Sem receita", 
-    "1–1.000", 
-    "1.001–10.000", 
-    "10.001–100.000", 
-    "Mais de 100.000"),
-  include.lowest = TRUE)
+tabela_decil_junto <- rbind(tabela_decil_2024,tabela_decil_2020,tabela_decil_2016)
 
-ggplot(candidatos_semNA2020, aes(x = FAIXA_RECEITA, fill = RACA_AGRUPADA)) +
-  geom_bar(position = "dodge") +
-  labs(x = "Receita",
-       y = "Quantidade de candidatos",
-       fill = "Raça") +
+ggplot(tabela_decil_junto, aes(x = Decil, fill = RACA_AGRUPADA)) +
+  geom_bar(position = "fill") +
+  facet_wrap(~Ano) +
   theme_minimal(base_family = "Times", base_size = 12) +
-  scale_fill_brewer(palette = "Set2") +
-  theme(legend.position = "bottom", panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),panel.grid.major.y = element_line(colour = "grey85",linewidth = 0.3)) 
+  labs(
+    x = "Decis de Receita",
+    y = "Proporção",
+    fill = "Raça"
+  )
 
 
+#Decil receita de campanha para os competitivos
 
+decil_receita_corte_comp2016$Ano <- 2016
+decil_receita_corte_comp2020$Ano <- 2020
+decil_receita_corte_comp2024$Ano <- 2024
 
-#divisão receita 2024
+decil_receita_corte_junto_comp <- rbind(decil_receita_corte_comp2016, decil_receita_corte_comp2020, decil_receita_corte_comp2024)
 
-ggplot(tabela_comp_receita_2024, aes(x = FAIXA_RECEITA, y = prop / 100, fill = RACA_AGRUPADA)) +
-  geom_col(position = "fill") +
-  scale_y_continuous(labels = scales::percent) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_family = "Times", base_size = 12) +   
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1) # Rotaciona os rótulos longos
+decil_receita_corte_junto_comp <- decil_receita_corte_junto_comp %>%
+  pivot_longer(
+    cols = starts_with("q"),
+    names_to = "decil",
+    values_to = "valor") %>%
+  mutate(decil = factor(decil, levels = c("q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10")))
+
+ggplot(decil_receita_corte_junto_comp, #em log
+       aes(x = decil, y = log(valor), color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    x = "Divisão Decil",
+    y = "Log(receita de campanha)",
+    color = "Ano"
   ) +
-  labs(x = "Faixa de Receita", y = "Proporção", fill = "Raça")
+  theme_minimal(base_family = "Times", base_size = 12)
 
+ggplot(decil_receita_corte_junto_comp, #em escala normal
+       aes(x = decil, y = valor, color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  scale_y_continuous(labels = label_number(big.mark = ".", decimal.mark = ",")) +
+  labs(
+    x = "Divisão Decil",
+    y = "Receita de campanha",
+    color = "Ano"
+  ) +
+  theme_minimal(base_family = "Times", base_size = 12)
 
+#
+tabela_decil_comp_2016$Ano <- 2016
+tabela_decil_comp_2020$Ano <- 2020
+tabela_decil_comp_2024$Ano <- 2024
 
-candidatos_semNA2024$FAIXA_RECEITA <- cut(
-  candidatos_semNA2024$RECEITA_TOTAL, 
-  breaks = c(-1, 0, 1000, 10000, 100000, Inf), # -1 garante que o 0 vire "Sem renda"
-  labels = c(
-    "Sem renda", 
-    "1–1.000", 
-    "1.001–10.000", 
-    "10.001–100.000", 
-    "Mais de 100.000"),
-  include.lowest = TRUE)
+tabela_decil_junto_comp <- rbind(tabela_decil_comp_2024,tabela_decil_comp_2020,tabela_decil_comp_2016)
 
+ggplot(tabela_decil_junto_comp, aes(x = Decil, fill = RACA_AGRUPADA)) +
+  geom_bar(position = "fill") + # Remova o stat = "identity" e o RECEITA_TOTAL
+  facet_wrap(~Ano) +
+  theme_minimal() +
+  labs(
+    x = "Decis de Receita",
+    y = "Proporção",
+    fill = "Raça"
+  )
 
-ggplot(candidatos_semNA2024, aes(x = FAIXA_RECEITA, fill = RACA_AGRUPADA)) +
-  geom_bar(position = "dodge") +
-  labs(x = "Receita",
-       y = "Quantidade de candidatos",
-       fill = "Raça") +
-  theme_minimal(base_family = "Times", base_size = 12) +
-  scale_fill_brewer(palette = "Set2") +
-  theme(legend.position = "bottom", panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),panel.grid.major.y = element_line(colour = "grey85",linewidth = 0.3)) 
+#NA em receita de campanha 
+
+NA_receita <- data.frame(
+  Ano = c(2016, 2020, 2024),
+  Porcentagem_NA = c(
+    mean(is.na(candidatos_geral2016$RECEITA_TOTAL) *100),
+    mean(is.na(candidatos_geral2020$RECEITA_TOTAL)*100),
+    mean(is.na(candidatos_geral2024$RECEITA_TOTAL)*100)))
+
+ggplot(NA_receita,
+       aes(x = factor(Ano), y = Porcentagem_NA)) +
+  geom_point(size=4) +
+  geom_line(group = 1) + 
+  geom_text(aes(label = number(Porcentagem_NA, accuracy = 0.01, decimal.mark = ",")), vjust = -0.8) +
+  labs(x= "Ano", y="Porcentagem de NA") +
+  theme_minimal(base_family = "Times", base_size = 12)
+
+#Decil bens para os candidatos
+
+decil_bens_cand2016$Ano <- 2016
+decil_bens_cand2020$Ano <- 2020
+decil_bens_cand2024$Ano <- 2024
+
+decil_bens_junto_cand <- rbind(decil_bens_cand2016, decil_bens_cand2020, decil_bens_cand2024)
+
+decil_bens_junto_cand <- decil_bens_junto_cand %>%
+  pivot_longer(
+    cols = starts_with("q"),
+    names_to = "decil",
+    values_to = "valor") %>% 
+  mutate(decil = factor(decil, levels = c("q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10")))
+
+ggplot(decil_bens_junto_cand, #em log
+       aes(x = decil, y = valor, color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  scale_y_continuous(labels = label_number(big.mark = ".", decimal.mark = ",")) +
+  labs(
+    x = "Divisão Decil",
+    y = "Patrimônio",
+    color = "Ano"
+  ) +
+  theme_minimal(base_family = "Times", base_size = 12)
+
+ggplot(decil_bens_junto_cand, #em log
+       aes(x = decil, y = log(valor), color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    x = "Divisão Decil",
+    y = "Log(Patrimônio)",
+    color = "Ano"
+  ) +
+  theme_minimal(base_family = "Times", base_size = 12)
+
+#Decil bens para os competitivos
+
+decil_bens_comp2016$Ano <- 2016
+decil_bens_comp2020$Ano <- 2020
+decil_bens_comp2024$Ano <- 2024
+
+decil_bens_junto_comp <- rbind(decil_bens_comp2016, decil_bens_comp2020, decil_bens_comp2024)
+
+decil_bens_junto_comp <- decil_bens_junto_comp %>%
+  pivot_longer(
+    cols = starts_with("q"),
+    names_to = "decil",
+    values_to = "valor") %>% 
+  mutate(decil = factor(decil, levels = c("q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10")))
+
+ggplot(decil_bens_junto_comp, #em log
+       aes(x = decil, y = valor, color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  scale_y_continuous(labels = label_number(big.mark = ".", decimal.mark = ",")) +
+  labs(
+    x = "Divisão Decil",
+    y = "Patrimônio",
+    color = "Ano"
+  ) +
+  theme_minimal(base_family = "Times", base_size = 12)
+
+ggplot(decil_bens_junto_comp, #em log
+       aes(x = decil, y = log(valor), color = factor(Ano), group = Ano)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    x = "Divisão Decil",
+    y = "Log(Patrimônio)",
+    color = "Ano"
+  ) +
+  theme_minimal(base_family = "Times", base_size = 12)
+
+#NA em bens
+
+NA_bens <- data.frame(
+  Ano = c(2016, 2020, 2024),
+  Porcentagem_NA = c(
+    mean(is.na(candidatos_geral2016$BENS_TOTAL) *100),
+    mean(is.na(candidatos_geral2020$BENS_TOTAL)*100),
+    mean(is.na(candidatos_geral2024$BENS_TOTAL)*100)))
+
+ggplot(NA_bens,
+       aes(x = factor(Ano), y = Porcentagem_NA)) +
+  geom_point(size=4) +
+  geom_line(group = 1) + 
+  geom_text(aes(label = number(Porcentagem_NA, accuracy = 0.01, decimal.mark = ",")), vjust = -0.8) +
+  labs(x= "Ano", y="Porcentagem de NA") +
+  theme_minimal(base_family = "Times", base_size = 12)
 
 
 
 #Modelos  de regressão
-
 
 #regressão multipla cand 
 regressao_mul_cand <- modelsummary(
@@ -389,7 +491,7 @@ regressao_mul_cand <- modelsummary(
   coef_map = c(
     "(Intercept)" = "(Constante)",
     "log(RECEITA_TOTAL + 1)" = "Receita (log)",
-    "log(VALOR_BENS + 1)" = "Patrimônio (log)",
+    "log(BENS_TOTAL + 1)" = "Patrimônio (log)",
     "RACA_AGRUPADANão Branco" = "Não branco",
     "DS_GENEROMASCULINO" = "Masculino",
     "ST_REELEICAOS" = "Reeleição",
@@ -408,6 +510,8 @@ regressao_mul_cand <- modelsummary(
     "Categoria de referência para escolaridade: Ensino fundamental completo."
   ), output = "flextable")
 
+
+
 save_as_docx(regressao_mul_cand, path = "regressao_mul_cand.docx")
 
 #Regressao multipla comp
@@ -421,7 +525,7 @@ regressao_mul_comp <- modelsummary(
   coef_map = c(
     "(Intercept)" = "(Constante)",
     "log(RECEITA_TOTAL + 1)" = "Receita (log)",
-    "log(VALOR_BENS + 1)" = "Patrimônio (log)",
+    "log(BENS_TOTAL + 1)" = "Patrimônio (log)",
     "RACA_AGRUPADANão Branco" = "Não branco",
     "DS_GENEROMASCULINO" = "Masculino",
     "ST_REELEICAOS" = "Reeleição",
@@ -457,7 +561,7 @@ regressao_logist_cand <- modelsummary(
   coef_map = c(
     "(Intercept)" = "Constante",
     "log(RECEITA_TOTAL + 1)" = "Receita (log)",
-    "log(VALOR_BENS + 1)" = "Patrimônio (log)",
+    "log(BENS_TOTAL + 1)" = "Patrimônio (log)",
     "RACA_AGRUPADANão Branco" = "Não branco",
     "DS_GENEROMASCULINO" = "Masculino",
     "ST_REELEICAOS" = "Reeleição",
@@ -490,7 +594,7 @@ regressao_logist_comp <- modelsummary(
   coef_map = c(
     "(Intercept)" = "Constante",
     "log(RECEITA_TOTAL + 1)" = "Receita (log)",
-    "log(VALOR_BENS + 1)" = "Patrimônio (log)",
+    "log(BENS_TOTAL+ 1)" = "Patrimônio (log)",
     "RACA_AGRUPADANão Branco" = "Não branco",
     "DS_GENEROMASCULINO" = "Masculino",
     "ST_REELEICAOS" = "Reeleição",
@@ -576,7 +680,7 @@ tabela_drop1_cand <- flextable(drop1_junto_cand) %>%
   ) %>%
   add_footer_lines(c(
     "GL = Graus de Liberdade",
-    "$\chi^2$ = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
+    "χ² = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
   font(fontname = "Times New Roman",part = "all") 
 
 
@@ -634,7 +738,6 @@ drop1_junto_comp <- drop1_junto_comp %>%
     values_from = c(`Qui quadrado`, `P-valor`))
 
 
-# Criar tabela
 tabela_drop1_comp <- flextable(drop1_junto_comp) %>%
   theme_booktabs() %>%
   autofit() %>%
@@ -650,9 +753,59 @@ tabela_drop1_comp <- flextable(drop1_junto_comp) %>%
   ) %>%
   add_footer_lines(c(
     "GL = Graus de Liberdade",
-    "$\chi^2$ = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
+    "χ² = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
   font(fontname = "Times New Roman",part = "all") 
 
 save_as_image(tabela_drop1_comp, path = "tabela_drop1_comp.png")
 
 
+# Quadrante 2024 
+
+corte_x <- mean(candidatos_semNA2024$RECEITA_TOTAL) # Média do eixo X
+corte_y <- mean(candidatos_semNA2024$TOTAL_VOTOS)
+
+candidatos_semNA2024 <- candidatos_semNA2024 %>%
+  mutate(quadrante = case_when(
+    RECEITA_TOTAL >= corte_x & TOTAL_VOTOS >= corte_y ~ "Q1 (Alto X, Alto Y)",
+    RECEITA_TOTAL < corte_x  & TOTAL_VOTOS >= corte_y ~ "Q2 (Baixo X, Alto Y)",
+    RECEITA_TOTAL < corte_x  & TOTAL_VOTOS < corte_y  ~ "Q3 (Baixo X, Baixo Y)",
+    RECEITA_TOTAL >= corte_x & TOTAL_VOTOS < corte_y  ~ "Q4 (Alto X, Baixo Y)"
+  ))
+
+ggplot(candidatos_semNA2024,
+       aes(x = log10(RECEITA_TOTAL + 1),
+           y = log10(TOTAL_VOTOS + 1),
+           color = quadrante)) +
+  geom_point(size = 3) +
+  geom_vline(
+    xintercept = log10(corte_x + 1),
+    linetype = "dashed",
+    color = "red"
+  ) +
+  geom_hline(
+    yintercept = log10(corte_y + 1),
+    linetype = "dashed",
+    color = "red"
+  ) +
+  scale_color_brewer(palette = "Set2") +
+  labs(
+    x = "Log10(Receita + 1)",
+    y = "Log10(Votos + 1)",
+    color = "Quadrante"
+  ) +
+  guides(color = guide_legend(nrow = 2)) +
+  theme_minimal(base_family = "Times", base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+lista_por_quadrante <- split(candidatos_semNA2024$NM_CANDIDATO, candidatos_semNA2024$quadrante)
+print(lista_por_quadrante)
+
+
+max_linhas <- max(sapply(lista_por_quadrante, length))
+lista_alinhada <- lapply(lista_por_quadrante, function(x) 
+  c(x, rep(NA, max_linhas - length(x))))
+tabela_excel <- as.data.frame(lista_alinhada)
+write.xlsx(tabela_excel, file = "quadrantes_2024.xlsx", overwrite = TRUE)
