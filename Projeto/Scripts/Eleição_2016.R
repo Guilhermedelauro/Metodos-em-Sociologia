@@ -6,6 +6,9 @@
 #install.packages("broom")
 #install.packages("car")
 #install.packages("marginaleffects")
+#install.packages("logistf")
+#install.packages("pscl")
+#install.packages("pROC")
 
 library(pROC)
 library(pscl)
@@ -169,35 +172,35 @@ tabela_decil_comp_2016 <- competitivos_semNA2016 %>%
       include.lowest = TRUE)) %>%
   select(Decil, RECEITA_TOTAL, RACA_AGRUPADA)
 
-#Calcula o valor dos decil de bens para os candidatos ####
+#Calcula o valor dos decil de bens para os candidatos 
 
 decil_bens_cand2016 <- candidatos_semNA2016 %>%  
   summarise(
-    q1 = quantile(RECEITA_TOTAL, 0.1), 
-    q2 = quantile(RECEITA_TOTAL, 0.2), 
-    q3 = quantile(RECEITA_TOTAL, 0.3),
-    q4 = quantile(RECEITA_TOTAL, 0.4),
-    q5 = quantile(RECEITA_TOTAL, 0.5),
-    q6 = quantile(RECEITA_TOTAL, 0.6),
-    q7 = quantile(RECEITA_TOTAL, 0.7),
-    q8 = quantile(RECEITA_TOTAL, 0.8),
-    q9 = quantile(RECEITA_TOTAL, 0.9),
-    q10 = quantile(RECEITA_TOTAL, 1))
+    q1 = quantile(BENS_TOTAL, 0.1), 
+    q2 = quantile(BENS_TOTAL, 0.2), 
+    q3 = quantile(BENS_TOTAL, 0.3),
+    q4 = quantile(BENS_TOTAL, 0.4),
+    q5 = quantile(BENS_TOTAL, 0.5),
+    q6 = quantile(BENS_TOTAL, 0.6),
+    q7 = quantile(BENS_TOTAL, 0.7),
+    q8 = quantile(BENS_TOTAL, 0.8),
+    q9 = quantile(BENS_TOTAL, 0.9),
+    q10 = quantile(BENS_TOTAL, 1))
 
-#Calcula o valor dos decil de bens para os competitivos    #####
+#Calcula o valor dos decil de bens para os competitivos    
 
 decil_bens_comp2016 <- competitivos_semNA2016 %>%
   summarise(
-    q1 = quantile(RECEITA_TOTAL, 0.1), 
-    q2 = quantile(RECEITA_TOTAL, 0.2), 
-    q3 = quantile(RECEITA_TOTAL, 0.3),
-    q4 = quantile(RECEITA_TOTAL, 0.4),
-    q5 = quantile(RECEITA_TOTAL, 0.5),
-    q6 = quantile(RECEITA_TOTAL, 0.6),
-    q7 = quantile(RECEITA_TOTAL, 0.7),
-    q8 = quantile(RECEITA_TOTAL, 0.8),
-    q9 = quantile(RECEITA_TOTAL, 0.9),
-    q10 = quantile(RECEITA_TOTAL, 1))
+    q1 = quantile(BENS_TOTAL, 0.1), 
+    q2 = quantile(BENS_TOTAL, 0.2), 
+    q3 = quantile(BENS_TOTAL, 0.3),
+    q4 = quantile(BENS_TOTAL, 0.4),
+    q5 = quantile(BENS_TOTAL, 0.5),
+    q6 = quantile(BENS_TOTAL, 0.6),
+    q7 = quantile(BENS_TOTAL, 0.7),
+    q8 = quantile(BENS_TOTAL, 0.8),
+    q9 = quantile(BENS_TOTAL, 0.9),
+    q10 = quantile(BENS_TOTAL, 1))
 
 
 #Conta o número de brancos e não brancos por partido para os candidatos
@@ -254,6 +257,10 @@ plot(curva_roc_firth2016,
 
 exp(coef(modelo_logist2016))       # Odds Ratio
 exp(confint(modelo_logist2016))   # Intervalo de Confiança dos Odds Ratio
+
+modelo_nulo_firth_2016 <- logistf(ELEITO ~ 1, data = candidatos_semNA2016)
+teste_global_2016 <- anova(modelo_logist2016, modelo_nulo_firth_2016) #teste globla(qui-quadrado)
+print(teste_global_2016)
 
 #Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
 
@@ -312,6 +319,10 @@ plot(curva_roc_firth2016_com,
 
 exp(coef(modelo_logist_com2016))       # Odds Ratio
 exp(confint(modelo_logist_com2016))    # Intervalo de Confiança dos Odds Ratio
+
+modelo_nulo_firth_com2016 <- logistf(ELEITO ~ 1, data = competitivos_semNA2016)
+teste_global_com2016 <- anova(modelo_logist_com2016, modelo_nulo_firth_com2016) #teste globla(qui-quadrado)
+print(teste_global_com2016)
 
 #Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
 modelo_logist_com_interacao2016 <- logistf(

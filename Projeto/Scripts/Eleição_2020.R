@@ -6,6 +6,9 @@
 #install.packages("broom")
 #install.packages("car")
 #install.packages("marginaleffects")
+#install.packages("logistf")
+#install.packages("pscl")
+#install.packages("pROC")
 
 library(pROC)
 library(pscl)
@@ -69,7 +72,7 @@ candidatos_semNA2020 <- candidatos_geral2020 %>%
       
     
 
-colSums(is.na(candidatos_filtrado_2020)) #Verifica onde tem NA
+colSums(is.na(candidatos_semNA2020)) #Verifica onde tem NA
 
 str(candidatos_semNA2020) #verifica o tipo de cada variável
 
@@ -103,7 +106,7 @@ candidatos_geral2020 %>%
   filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA")) %>%
   with(prop.table(table(RACA_AGRUPADA)) * 100) 
 
-num_elei2020 <- prop_elei2020 <- candidatos_geral2020 %>%
+num_elei2020 <- candidatos_geral2020 %>%
   filter(DS_SIT_TOT_TURNO %in% c("ELEITO POR QP", "ELEITO POR MÉDIA")) %>%
   count(RACA_AGRUPADA) %>%
   as.data.frame()
@@ -175,10 +178,33 @@ tabela_decil_comp_2020 <- competitivos_semNA2020 %>%
 
 
 #Calcula o valor dos decil de bens para os candidatos 
-
+decil_bens_cand2020 <- candidatos_semNA2020 %>%  
+  summarise(
+    q1 = quantile(BENS_TOTAL, 0.1), 
+    q2 = quantile(BENS_TOTAL, 0.2), 
+    q3 = quantile(BENS_TOTAL, 0.3),
+    q4 = quantile(BENS_TOTAL, 0.4),
+    q5 = quantile(BENS_TOTAL, 0.5),
+    q6 = quantile(BENS_TOTAL, 0.6),
+    q7 = quantile(BENS_TOTAL, 0.7),
+    q8 = quantile(BENS_TOTAL, 0.8),
+    q9 = quantile(BENS_TOTAL, 0.9),
+    q10 = quantile(BENS_TOTAL, 1))
 
 
 #Calcula o valor dos decil de bens para os competitivos 
+decil_bens_comp2020 <- competitivos_semNA2020 %>%
+  summarise(
+    q1 = quantile(BENS_TOTAL, 0.1), 
+    q2 = quantile(BENS_TOTAL, 0.2), 
+    q3 = quantile(BENS_TOTAL, 0.3),
+    q4 = quantile(BENS_TOTAL, 0.4),
+    q5 = quantile(BENS_TOTAL, 0.5),
+    q6 = quantile(BENS_TOTAL, 0.6),
+    q7 = quantile(BENS_TOTAL, 0.7),
+    q8 = quantile(BENS_TOTAL, 0.8),
+    q9 = quantile(BENS_TOTAL, 0.9),
+    q10 = quantile(BENS_TOTAL, 1))
 
 
 
@@ -238,6 +264,10 @@ plot(curva_roc_firth2020,
 exp(coef(modelo_logist2020))       # Odds Ratio
 exp(confint(modelo_logist2020))   # Intervalo de Confiança dos Odds Ratio
 
+modelo_nulo_firth_2020 <- logistf(ELEITO ~ 1, data = candidatos_semNA2020)
+teste_global_2020 <- anova(modelo_logist2020, modelo_nulo_firth_2020) #teste globla(qui-quadrado)
+print(teste_global_2020)
+
 #Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
 modelo_logist_interacao2020 <- logistf(
   ELEITO ~ log(RECEITA_TOTAL + 1)*RACA_AGRUPADA + ST_REELEICAO + DS_GENERO + DS_GRAU_INSTRUCAO + log(BENS_TOTAL + 1),
@@ -294,6 +324,10 @@ plot(curva_roc_firth2020_com,
 
 exp(coef(modelo_logist_com2020))       # Odds Ratio
 exp(confint(modelo_logist_com2020))   # Intervalo de Confiança dos Odds Ratio
+
+modelo_nulo_firth_com2020 <- logistf(ELEITO ~ 1, data = competitivos_semNA2020)
+teste_global_com2020 <- anova(modelo_logist_com2020, modelo_nulo_firth_com2020) #teste globla(qui-quadrado)
+print(teste_global_com2020)
 
 #Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
 modelo_logist_com_interacao2020 <- logistf(

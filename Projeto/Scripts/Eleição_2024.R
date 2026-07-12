@@ -176,35 +176,35 @@ tabela_decil_comp_2024 <- competitivos_semNA2024 %>%
 
 
 
-#Calcula o valor de cada decil de bens para os candidatos ###
+#Calcula o valor de cada decil de bens para os candidatos 
 
 decil_bens_cand2024 <- candidatos_semNA2024 %>%
   summarise(
-    q1 = quantile(RECEITA_TOTAL, 0.1), 
-    q2 = quantile(RECEITA_TOTAL, 0.2), 
-    q3 = quantile(RECEITA_TOTAL, 0.3),
-    q4 = quantile(RECEITA_TOTAL, 0.4),
-    q5 = quantile(RECEITA_TOTAL, 0.5),
-    q6 = quantile(RECEITA_TOTAL, 0.6),
-    q7 = quantile(RECEITA_TOTAL, 0.7),
-    q8 = quantile(RECEITA_TOTAL, 0.8),
-    q9 = quantile(RECEITA_TOTAL, 0.9),
-    q10 = quantile(RECEITA_TOTAL, 1))
+    q1 = quantile(BENS_TOTAL, 0.1), 
+    q2 = quantile(BENS_TOTAL, 0.2), 
+    q3 = quantile(BENS_TOTAL, 0.3),
+    q4 = quantile(BENS_TOTAL, 0.4),
+    q5 = quantile(BENS_TOTAL, 0.5),
+    q6 = quantile(BENS_TOTAL, 0.6),
+    q7 = quantile(BENS_TOTAL, 0.7),
+    q8 = quantile(BENS_TOTAL, 0.8),
+    q9 = quantile(BENS_TOTAL, 0.9),
+    q10 = quantile(BENS_TOTAL, 1))
 
 #Calcula o valor de cada decil em decil de bens para os competitivos ####
 
 decil_bens_comp2024 <- competitivos_semNA2024 %>%
   summarise(
-    q1 = quantile(RECEITA_TOTAL, 0.1), 
-    q2 = quantile(RECEITA_TOTAL, 0.2), 
-    q3 = quantile(RECEITA_TOTAL, 0.3),
-    q4 = quantile(RECEITA_TOTAL, 0.4),
-    q5 = quantile(RECEITA_TOTAL, 0.5),
-    q6 = quantile(RECEITA_TOTAL, 0.6),
-    q7 = quantile(RECEITA_TOTAL, 0.7),
-    q8 = quantile(RECEITA_TOTAL, 0.8),
-    q9 = quantile(RECEITA_TOTAL, 0.9),
-    q10 = quantile(RECEITA_TOTAL, 1))
+    q1 = quantile(BENS_TOTAL, 0.1), 
+    q2 = quantile(BENS_TOTAL, 0.2), 
+    q3 = quantile(BENS_TOTAL, 0.3),
+    q4 = quantile(BENS_TOTAL, 0.4),
+    q5 = quantile(BENS_TOTAL, 0.5),
+    q6 = quantile(BENS_TOTAL, 0.6),
+    q7 = quantile(BENS_TOTAL, 0.7),
+    q8 = quantile(BENS_TOTAL, 0.8),
+    q9 = quantile(BENS_TOTAL, 0.9),
+    q10 = quantile(BENS_TOTAL, 1))
 
 
 #Conta o número de brancos e não brancos por partido para os candidatos
@@ -265,6 +265,9 @@ plot(curva_roc_firth2024,
 exp(coef(modelo_logist2024))       # Odds Ratio
 exp(confint(modelo_logist2024))   # Intervalo de Confiança dos Odds Ratio
 
+modelo_nulo_firth_2024 <- logistf(ELEITO ~ 1, data = candidatos_semNA2024)
+teste_global_2024 <- anova(modelo_logist2024, modelo_nulo_firth_2024) #teste globla(qui-quadrado)
+print(teste_global_2024)
 
 #Modelo de regressão logística para os candidatos para ver se a raça muda o efeito da receita 
 modelo_logist_interacao2024 <- logistf(
@@ -321,6 +324,11 @@ plot(curva_roc_firth2024_com,
 
 exp(coef(modelo_logist_com2024))       # Odds Ratio
 exp(confint(modelo_logist_com2024))   # Intervalo de Confiança dos Odds Ratio
+
+modelo_nulo_firth_com2024 <- logistf(ELEITO ~ 1, data = competitivos_semNA2024)
+teste_global_com2024 <- anova(modelo_logist_com2024, modelo_nulo_firth_com2024) #teste globla(qui-quadrado)
+print(teste_global_com2024)
+
 
 #Modelo de regressão logística para os competitivos para ver se a raça muda o efeito da receita 
 modelo_logist_com_interacao2024 <- logistf(

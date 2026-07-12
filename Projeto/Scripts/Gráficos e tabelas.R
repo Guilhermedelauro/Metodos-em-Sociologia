@@ -648,7 +648,7 @@ drop1_junto_cand <- drop1_junto_cand%>%
   mutate(
     Variáveis = case_when(
       Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log(Receita +1)",
-      Variáveis == "log(VALOR_BENS + 1)" ~ "Log(Patrimônio +1)",
+      Variáveis == "log(BENS_TOTAL + 1)" ~ "Log(Patrimônio +1)",
       Variáveis == "RACA_AGRUPADA" ~ "Raça",
       Variáveis == "DS_GENERO" ~ "Gênero",
       Variáveis == "ST_REELEICAO" ~ "Reeleição",
@@ -722,7 +722,7 @@ drop1_junto_comp <- drop1_junto_comp%>%
   mutate(
     Variáveis = case_when(
       Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log(Receita +1)",
-      Variáveis == "log(VALOR_BENS + 1)" ~ "Log(Patrimônio +1)",
+      Variáveis == "log(BENS_TOTAL + 1)" ~ "Log(Patrimônio +1)",    ####
       Variáveis == "RACA_AGRUPADA" ~ "Raça",
       Variáveis == "DS_GENERO" ~ "Gênero",
       Variáveis == "ST_REELEICAO" ~ "Reeleição",
