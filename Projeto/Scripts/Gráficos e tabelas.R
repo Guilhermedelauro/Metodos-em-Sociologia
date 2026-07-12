@@ -4,11 +4,14 @@
 #install.packages("pandoc")
 #install.packages("modelsummary")
 #install.packages("openxlsx")
+#install.packages("tidyverse")
+#install.packages("flextable")
+#install.packages("scales")
 
 library(openxlsx)
 library(ggplot2)
 library(tidyverse)
-library (flextable)
+library(flextable)
 library(scales)
 library(modelsummary)
 library(pandoc)
@@ -93,9 +96,11 @@ tabela_candidato <- flextable(tabela_candidato) %>%
   font(fontname = "Times",part = "all") 
 
 
-
-save_as_image(tabela_candidato, path="tabela_candidato.png")
-
+print(tabela_candidato)
+save_as_image(
+  tabela_candidato, 
+  path = "tabela_candidato.png", 
+  res = 300)
 #tabela raça competitivos 
 
 num_comp2016$Ano <- 2016
@@ -137,8 +142,12 @@ tabela_competitivo <- flextable(tabela_competitivo) %>%
   font(fontname = "Times New Roman",part = "all") 
 
 
+print(tabela_competitivo)
 save_as_image(tabela_competitivo, path="tabela_competitivo.png")
-
+save_as_image(
+  tabela_competitivo, 
+  path = "tabela_competitivo.png", 
+  res = 300)
 
 #tabela raça eleitos
 
@@ -181,8 +190,12 @@ tabela_eleito <- flextable(tabela_eleito) %>%
   font(fontname = "Times New Roman",part = "all") 
 
 
+print(tabela_eleito)
 save_as_image(tabela_eleito, path="tabela_eleito.png")
-
+save_as_image(
+  tabela_eleito, 
+  path = "tabela_eleito.png", 
+  res = 300)
 
 # Coeficiente r receita e número de votos candidatos 
 
@@ -293,7 +306,7 @@ ggplot(decil_receita_corte_junto_cand, #escala normal
   ) +
   theme_minimal(base_family = "Times", base_size = 12)
 
-#
+#Composição racial dos decis
 tabela_decil_2016$Ano <- 2016
 tabela_decil_2020$Ano <- 2020
 tabela_decil_2024$Ano <- 2024
@@ -349,7 +362,7 @@ ggplot(decil_receita_corte_junto_comp, #em escala normal
   ) +
   theme_minimal(base_family = "Times", base_size = 12)
 
-#
+# Composição racial dos decis 
 tabela_decil_comp_2016$Ano <- 2016
 tabela_decil_comp_2020$Ano <- 2020
 tabela_decil_comp_2024$Ano <- 2024
@@ -487,6 +500,7 @@ regressao_mul_cand <- modelsummary(
     "2020" = modelo_lm2020,
     "2024" = modelo_lm2024),
   statistic =  "({std.error})",
+  fmt = function(x) format(round(x, 3), nsmall = 3, decimal.mark = ","),
   stars = c("*" = .05, "**" = .01, "***" = .001),
   coef_map = c(
     "(Intercept)" = "(Constante)",
@@ -521,6 +535,7 @@ regressao_mul_comp <- modelsummary(
     "2020" = modelo_lm_com2020,
     "2024" = modelo_lm_com2024),
   statistic =  "({std.error})",
+  fmt = function(x) format(round(x, 3), nsmall = 3, decimal.mark = ","),
   stars = c("*" = .05, "**" = .01, "***" = .001),
   coef_map = c(
     "(Intercept)" = "(Constante)",
@@ -557,6 +572,7 @@ regressao_logist_cand <- modelsummary(
     "2024" = modelo_logist2024),
   exponentiate = TRUE,
   statistic = "({std.error})",
+  fmt = function(x) format(round(x, 3), nsmall = 3, decimal.mark = ","),
   stars = c("*" = .05, "**" = .01, "***" = .001),
   coef_map = c(
     "(Intercept)" = "Constante",
@@ -590,6 +606,7 @@ regressao_logist_comp <- modelsummary(
     "2024" = modelo_logist_com2024),
   exponentiate = TRUE,
   statistic = "({std.error})",
+  fmt = function(x) format(round(x, 3), nsmall = 3, decimal.mark = ","),
   stars = c("*" = .05, "**" = .01, "***" = .001),
   coef_map = c(
     "(Intercept)" = "Constante",
@@ -609,14 +626,13 @@ regressao_logist_comp <- modelsummary(
     "Odds ratios reportados; erros-padrão entre parênteses.",
     "Categoria de referência para escolaridade: Ensino Fundamental Completo."), output = "flextable")
 
-
+print(regressao_logist_comp)
 save_as_docx(regressao_logist_comp, path = "regressao_logist_comp.docx")
 
 
 
 
-#modelo com interação cand
-
+#Modelo com interação para todos os candidatos
 drop1_cand2024 <- as.data.frame(drop1(modelo_logist_interacao2024, test = "Chisq"))
 drop1_cand2020 <- as.data.frame(drop1(modelo_logist_interacao2020, test = "Chisq"))
 drop1_cand2016 <- as.data.frame(drop1(modelo_logist_interacao2016, test = "Chisq"))
@@ -643,8 +659,8 @@ drop1_junto_cand <- drop1_junto_cand%>%
     `Qui quadrado` = round(`Qui quadrado`, 3),
     `P-valor` = ifelse(
       `P-valor` < 0.001,
-      format(`P-valor`, scientific = TRUE, digits = 2),
-      sprintf("%.4f", `P-valor`))) %>%
+      format(`P-valor`, scientific = TRUE, digits = 2, decimal.mark = ","),
+      format(round(`P-valor`, 4), nsmall = 4, decimal.mark = ","))) %>%
   mutate(
     Variáveis = case_when(
       Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log(Receita +1)",
@@ -663,13 +679,18 @@ drop1_junto_cand <- drop1_junto_cand %>%
     names_from = Ano,
     values_from = c(`Qui quadrado`, `P-valor`))
 
-
 # Criar tabela
 tabela_drop1_cand <- flextable(drop1_junto_cand) %>%
   theme_booktabs() %>%
   autofit() %>%
   bold(part = "header") %>%
   align(align = "center", part = "all") %>%
+  colformat_double(
+    j = c("Qui quadrado_2016", "Qui quadrado_2020", "Qui quadrado_2024"),
+    digits = 3,
+    decimal.mark = ",",
+    big.mark = "."
+  ) %>%
   set_header_labels(
     `Qui quadrado_2016` = "χ² (2016)",
     `Qui quadrado_2020` = "χ² (2020)",
@@ -683,13 +704,13 @@ tabela_drop1_cand <- flextable(drop1_junto_cand) %>%
     "χ² = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
   font(fontname = "Times New Roman",part = "all") 
 
+print(tabela_drop1_cand)
+save_as_image(
+  tabela_drop1_cand, 
+  path = "tabela_drop1_cand.png", 
+  res = 300)
 
-save_as_image(tabela_drop1_cand, path = "tabela_drop1_cand.png")
-
-
-
-
-#modelo com interação comp
+#Modelo com interação para os candidatos competitivos 
 
 drop1_comp2024 <- as.data.frame(drop1(modelo_logist_com_interacao2024, test = "Chisq"))
 drop1_comp2020 <- as.data.frame(drop1(modelo_logist_com_interacao2020, test = "Chisq"))
@@ -717,8 +738,8 @@ drop1_junto_comp <- drop1_junto_comp%>%
     `Qui quadrado` = round(`Qui quadrado`, 3),
     `P-valor` = ifelse(
       `P-valor` < 0.001,
-      format(`P-valor`, scientific = TRUE, digits = 2),
-      sprintf("%.4f", `P-valor`))) %>%
+      format(`P-valor`, scientific = TRUE, digits = 2, decimal.mark = ","),
+      format(round(`P-valor`, 4), nsmall = 4, decimal.mark = ","))) %>%
   mutate(
     Variáveis = case_when(
       Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log(Receita +1)",
@@ -743,6 +764,12 @@ tabela_drop1_comp <- flextable(drop1_junto_comp) %>%
   autofit() %>%
   bold(part = "header") %>%
   align(align = "center", part = "all") %>%
+  colformat_double(
+    j = c("Qui quadrado_2016", "Qui quadrado_2020", "Qui quadrado_2024"),
+    digits = 3,
+    decimal.mark = ",",
+    big.mark = "."
+  ) %>%
   set_header_labels(
     `Qui quadrado_2016` = "χ² (2016)",
     `Qui quadrado_2020` = "χ² (2020)",
@@ -756,11 +783,13 @@ tabela_drop1_comp <- flextable(drop1_junto_comp) %>%
     "χ² = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
   font(fontname = "Times New Roman",part = "all") 
 
-save_as_image(tabela_drop1_comp, path = "tabela_drop1_comp.png")
-
+print(tabela_drop1_comp)
+save_as_image(
+  tabela_drop1_comp, 
+  path = "tabela_drop1_comp.png", 
+  res = 300)
 
 # Quadrante 2024 
-
 corte_x <- mean(candidatos_semNA2024$RECEITA_TOTAL) # Média do eixo X
 corte_y <- mean(candidatos_semNA2024$TOTAL_VOTOS)
 
