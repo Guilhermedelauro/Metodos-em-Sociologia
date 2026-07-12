@@ -7,6 +7,7 @@ library(tidyverse)  #Carrega a biblioteca
 # (I) candidatos do munícipio São Paulo
 # (II) vereadores
 #Em seguida, cria um banco de dados com as varíaveis desejadas
+#Por fim, cria uma nova coluna com os nomes dos candidatos de forma padronizada
 candidatos2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\consulta_cand_2016_SP.csv", fileEncoding = "latin1")
 
 banco_candidatos2016 <- candidatos2016 %>%
@@ -35,8 +36,8 @@ banco_bens2016 <- bens2016 %>%
 
 
 #Importa o banco de dados sobre o resultado da eleição
-#Filtra por (I)candidatos do munícipio de São Paulo e (II) vereadores
-#Agrupa pelo SQ do candidato e pelo resultado da eleição
+#Filtra por: (I) candidatos do munícipio de São Paulo e (II) vereadores
+#Agrupa pelo SQ do candidato 
 #Soma o total de votos nominais válidos para cada candidato
 resultado2016 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\votacao_candidato_munzona_2016_SP.csv", fileEncoding = "latin1")
 
@@ -55,7 +56,7 @@ banco_resultado2016 <- resultado2016 %>%
 #Importa o banco de receita
 #Filtra por (I) candidatos do munícipio de São Paulo e (II) vereadores
 #Agrupa pelo nome do candidato
-#Soma o total de receita e o tipo da receita para cada candidato
+#Soma o total de receita, o tipo da receita e a origem da receita para cada candidato
 #Muda o nome da coluna do nome do candidato
 receita2016 <- read.table("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2016\\receitas_candidatos_relatorio_financeiro_2016_SP.txt", header = TRUE, sep = ";", fileEncoding = "latin1", dec =",")
 
@@ -77,6 +78,7 @@ banco_receita2016 <- banco_receita2016 %>%
 
 
 # Junta os bancos criado em um a partir do banco_candidatos_filtrado2016, que possui todos os filtros
+# Filtra para retirar os casos com NA na variável do número de votos
 banco_final2016 <- banco_candidatos_filtrado2016 %>%
   left_join(banco_bens2016, by = "SQ_CANDIDATO") %>%
   left_join(banco_resultado2016, by = "SQ_CANDIDATO") %>%
@@ -87,5 +89,4 @@ banco_final2016 <- banco_final2016 %>%
 
 #Salva em csv
 write.csv2(banco_final2016, "Banco_2016.csv",row.names = FALSE,fileEncoding = "latin1" )
-
 

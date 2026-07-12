@@ -7,11 +7,10 @@ library(tidyverse)  #Carregar biblioteca
 
 #Importa o banco de dados complementar sobre os candidatos
 #Cria um novo banco com aas varíaveis desejadas
-complementar2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\consulta_cand_complementar_2024_SP.csv")
+complementar2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\consulta_cand_complementar_2024_SP.csv",fileEncoding = "latin1")
 
 banco_complementar_filtrado2024 <- complementar2024 %>%
   select(SQ_CANDIDATO, ST_REELEICAO, DS_SITUACAO_JULGAMENTO_URNA)
-
 
 
 #Importa o banco de dados sobre os candidatos e filtra por:
@@ -45,7 +44,7 @@ banco_bens2024 <- bens2024 %>%
 
 #Importa o banco de dados do resultado
 #Filtra por (I) candidatos do munícipio de São Paulo e (II) vereador
-#Agrupa pelo SQ do candidato e pelo resultado da eleição por candidato
+#Agrupa pelo SQ do candidato 
 #Soma o total de votos para cada candidato
 resultado2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\votacao_candidato_munzona_2024_SP.csv", fileEncoding = "latin1")
 
@@ -62,7 +61,7 @@ banco_resultado2024 <- resultado2024 %>%
 #Importa o banco receita
 #Filtra por (I) candidadatos do munícipio de São Paulo e (II) Vereadores
 #Agrupa pelo SQ do candidato
-#Soma o total de receita e a fonte da receita de cada candidato
+#Soma o total de receita, fonte da receita e origem da receita de cada candidato
 receita2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\receitas_candidatos_2024_SP.csv", fileEncoding = "latin1")
 
 banco_receita2024 <- receita2024 %>%
@@ -76,7 +75,8 @@ banco_receita2024 <- receita2024 %>%
 
 
 
-#Junta os bancos criados em 1 
+#Junta os bancos criados em um 
+#Filtra os casos com NA na variável número de votos 
 banco_final2024 <- banco_candidatos_filtrado2024 %>%
   left_join(banco_complementar_filtrado2024, by = "SQ_CANDIDATO") %>%
   left_join(banco_resultado2024, by = "SQ_CANDIDATO") %>%
