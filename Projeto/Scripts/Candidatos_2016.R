@@ -15,7 +15,7 @@ banco_candidatos2016 <- candidatos2016 %>%
          toupper(DS_CARGO) == "VEREADOR") 
 
 banco_candidatos_filtrado2016 <- banco_candidatos2016 %>%
-  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO, DS_SITUACAO_CANDIDATURA,ST_REELEICAO)
+  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO,ST_REELEICAO)
 
 banco_candidatos_filtrado2016 <- banco_candidatos_filtrado2016 %>%
   mutate(nome_key = toupper(trimws(NM_CANDIDATO)))

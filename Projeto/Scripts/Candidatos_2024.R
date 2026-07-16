@@ -3,14 +3,18 @@
 
 library(tidyverse)  #Carregar biblioteca
 
+sum(is.na(bens2024$VR_BEM_CANDIDATO))
+sum(is.na(receita2024$VR_RECEITA))
 
+sum(is.na(banco_final2024$BENS_TOTAL))
+sum(is.na(banco_final2024$RECEITA_TOTAL))
 
 #Importa o banco de dados complementar sobre os candidatos
 #Cria um novo banco com aas varíaveis desejadas
 complementar2024 <- read.csv2("C:\\Users\\guide\\OneDrive\\Área de Trabalho\\Candidatos_2024\\consulta_cand_complementar_2024_SP.csv",fileEncoding = "latin1")
 
 banco_complementar_filtrado2024 <- complementar2024 %>%
-  select(SQ_CANDIDATO, ST_REELEICAO, DS_SITUACAO_JULGAMENTO_URNA)
+  select(SQ_CANDIDATO, ST_REELEICAO)
 
 
 #Importa o banco de dados sobre os candidatos e filtra por:
@@ -24,7 +28,7 @@ banco_candidatos2024 <- candidatos2024 %>%
          toupper(DS_CARGO) == "VEREADOR") 
 
 banco_candidatos_filtrado2024 <- banco_candidatos2024 %>%
-  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO, DS_SITUACAO_CANDIDATURA)
+  select(SQ_CANDIDATO, NM_CANDIDATO, NM_SOCIAL_CANDIDATO,SG_PARTIDO,DS_GENERO, DS_GRAU_INSTRUCAO, DS_ESTADO_CIVIL, DS_COR_RACA, DS_OCUPACAO)
 
 
 
