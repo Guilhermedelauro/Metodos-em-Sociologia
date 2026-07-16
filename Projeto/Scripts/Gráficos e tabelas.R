@@ -23,7 +23,7 @@ source("C:\\Users\\guide\\OneDrive\\R pasta\\Metodos-em-Sociologia\\Projeto\\Scr
 
 #3. Gráficos e Tabelas 
 
-#Fonte
+#Carregar a fonte utilizada
 windowsFonts(Times = windowsFont("Times New Roman"))
 
 #gráfico de raça por ano
@@ -54,8 +54,7 @@ barra_raca <- ggplot(tabela_raca_junto, aes(x=Freq, y=Var1, fill= factor(Ano))) 
 print(barra_raca)
 
 
-#tabela raça candidatos
-
+#Tabela da raça dos candidatos
 num_cand2016$ANO <- 2016
 num_cand2020$ANO <- 2020
 num_cand2024$ANO <- 2024
@@ -101,8 +100,9 @@ save_as_image(
   tabela_candidato, 
   path = "tabela_candidato.png", 
   res = 300)
-#tabela raça competitivos 
 
+
+#Tabela da raça dos competitivos 
 num_comp2016$Ano <- 2016
 num_comp2020$Ano <- 2020
 num_comp2024$Ano <- 2024
@@ -149,7 +149,7 @@ save_as_image(
   path = "tabela_competitivo.png", 
   res = 300)
 
-#tabela raça eleitos
+#Tabela da raça dos eleitos
 
 num_elei2016$Ano <- 2016
 num_elei2020$Ano <- 2020
@@ -197,7 +197,7 @@ save_as_image(
   path = "tabela_eleito.png", 
   res = 300)
 
-# Coeficiente r receita e número de votos candidatos 
+# Tabela do coeficiente de correlação entre receita e número de votos para todos os candidatos 
 
 r_cand_2016$Ano <- 2016
 r_cand_2020$Ano <- 2020
@@ -234,8 +234,7 @@ print(tabela_r_cand)
 save_as_image(tabela_r_cand, path="tabela_r_cand.png")
 
 
-#Coeficiente r receita e números de votos competitivos 
-
+#Tabela do coeficiente de correlação entre receita e números de votos paar os competitivos 
 r_comp_2016$Ano <- 2016
 r_comp_2020$Ano <- 2020
 r_comp_2024$Ano <- 2024
@@ -306,7 +305,7 @@ ggplot(decil_receita_corte_junto_cand, #escala normal
   ) +
   theme_minimal(base_family = "Times", base_size = 12)
 
-#Composição racial dos decis
+#Composição racial dos decis 
 tabela_decil_2016$Ano <- 2016
 tabela_decil_2020$Ano <- 2020
 tabela_decil_2024$Ano <- 2024
@@ -325,7 +324,6 @@ ggplot(tabela_decil_junto, aes(x = Decil, fill = RACA_AGRUPADA)) +
 
 
 #Decil receita de campanha para os competitivos
-
 decil_receita_corte_comp2016$Ano <- 2016
 decil_receita_corte_comp2020$Ano <- 2020
 decil_receita_corte_comp2024$Ano <- 2024
@@ -362,7 +360,7 @@ ggplot(decil_receita_corte_junto_comp, #em escala normal
   ) +
   theme_minimal(base_family = "Times", base_size = 12)
 
-# Composição racial dos decis 
+# Composição racial dos decis de receita
 tabela_decil_comp_2016$Ano <- 2016
 tabela_decil_comp_2020$Ano <- 2020
 tabela_decil_comp_2024$Ano <- 2024
@@ -379,8 +377,7 @@ ggplot(tabela_decil_junto_comp, aes(x = Decil, fill = RACA_AGRUPADA)) +
     fill = "Raça"
   )
 
-#NA em receita de campanha 
-
+#Faz um gráfico com a quantidade de NA em receita de campanha em cada eleição 
 NA_receita <- data.frame(
   Ano = c(2016, 2020, 2024),
   Porcentagem_NA = c(
@@ -394,10 +391,11 @@ ggplot(NA_receita,
   geom_line(group = 1) + 
   geom_text(aes(label = number(Porcentagem_NA, accuracy = 0.01, decimal.mark = ",")), vjust = -0.8) +
   labs(x= "Ano", y="Porcentagem de NA") +
+  coord_cartesian(clip = "off") +
   theme_minimal(base_family = "Times", base_size = 12)
 
-#Decil bens para os candidatos
 
+#Decil bens para os candidatos
 decil_bens_cand2016$Ano <- 2016
 decil_bens_cand2020$Ano <- 2020
 decil_bens_cand2024$Ano <- 2024
@@ -434,8 +432,8 @@ ggplot(decil_bens_junto_cand, #em log
   ) +
   theme_minimal(base_family = "Times", base_size = 12)
 
-#Decil bens para os competitivos
 
+#Decil bens para os competitivos
 decil_bens_comp2016$Ano <- 2016
 decil_bens_comp2020$Ano <- 2020
 decil_bens_comp2024$Ano <- 2024
@@ -472,8 +470,8 @@ ggplot(decil_bens_junto_comp, #em log
   ) +
   theme_minimal(base_family = "Times", base_size = 12)
 
-#NA em bens
 
+#Faz um gráfico da quantidade de NA em bens
 NA_bens <- data.frame(
   Ano = c(2016, 2020, 2024),
   Porcentagem_NA = c(
@@ -486,14 +484,15 @@ ggplot(NA_bens,
   geom_point(size=4) +
   geom_line(group = 1) + 
   geom_text(aes(label = number(Porcentagem_NA, accuracy = 0.01, decimal.mark = ",")), vjust = -0.8) +
-  labs(x= "Ano", y="Porcentagem de NA") +
+  labs(x= "Ano", y="Porcentagem de NA") + 
+  coord_cartesian(clip = "off") +
   theme_minimal(base_family = "Times", base_size = 12)
 
 
 
-#Modelos  de regressão
+#Tabelas para os modelos  de regressão
 
-#regressão multipla cand 
+#Modelo de regressão multipla para todos os candidatos 
 regressao_mul_cand <- modelsummary(
   list(
     "2016" = modelo_lm2016,
@@ -524,11 +523,11 @@ regressao_mul_cand <- modelsummary(
     "Categoria de referência para escolaridade: Ensino fundamental completo."
   ), output = "flextable")
 
-
-
+#Visualiza e salva a tabela 
+print(regressao_mul_cand)
 save_as_docx(regressao_mul_cand, path = "regressao_mul_cand.docx")
 
-#Regressao multipla comp
+#Modelo de regressao multipla para os competitivos
 regressao_mul_comp <- modelsummary(
   list(
     "2016" = modelo_lm_com2016,
@@ -559,12 +558,13 @@ regressao_mul_comp <- modelsummary(
     "Categoria de referência para escolaridade: Ensino fundamental completo."
   ), output = "flextable")
 
+#Visualiza e salva a tabela 
+print(regressao_mul_comp)
 save_as_docx(regressao_mul_comp, path = "regressao_mul_comp.docx")
 
 
 
-#regressao logostica cand
-
+#Modelo de regressao logostica para todos os candidatos 
 regressao_logist_cand <- modelsummary(
   list(
     "2016" = modelo_logist2016,
@@ -592,12 +592,13 @@ regressao_logist_cand <- modelsummary(
     "Odds ratios reportados; erros-padrão entre parênteses.",
     "Categoria de referência para escolaridade: Ensino Fundamental Completo."), output = "flextable")
 
-
+#Visualiza e salva a tabela 
+print(regressao_logist_cand)
 save_as_docx(regressao_logist_cand, path = "regressao_logist_cand.docx")
 
 
 
-#regressão logistica comp
+# Modelo de regressão logistica para os candidatos competitivos
 
 regressao_logist_comp <- modelsummary(
   list(
@@ -626,6 +627,7 @@ regressao_logist_comp <- modelsummary(
     "Odds ratios reportados; erros-padrão entre parênteses.",
     "Categoria de referência para escolaridade: Ensino Fundamental Completo."), output = "flextable")
 
+#Visualiza e salva a tabela 
 print(regressao_logist_comp)
 save_as_docx(regressao_logist_comp, path = "regressao_logist_comp.docx")
 
@@ -647,8 +649,9 @@ drop1_cand2024$Ano <- 2024
 drop1_cand2020$Ano <- 2020
 drop1_cand2016$Ano <- 2016
 
-# Juntar tudo
+# Juntar tudo e formata(muda casa decimal e o nome das variáveis)
 drop1_junto_cand <- bind_rows(drop1_cand2024,drop1_cand2020,drop1_cand2016)
+
 
 drop1_junto_cand <- drop1_junto_cand%>%
   rename("Qui quadrado" = ChiSq,
@@ -663,13 +666,13 @@ drop1_junto_cand <- drop1_junto_cand%>%
       format(round(`P-valor`, 4), nsmall = 4, decimal.mark = ","))) %>%
   mutate(
     Variáveis = case_when(
-      Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log(Receita +1)",
-      Variáveis == "log(BENS_TOTAL + 1)" ~ "Log(Patrimônio +1)",
+      Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log (receita +1)",
+      Variáveis == "log(BENS_TOTAL + 1)" ~ "Log (bens +1)",
       Variáveis == "RACA_AGRUPADA" ~ "Raça",
       Variáveis == "DS_GENERO" ~ "Gênero",
       Variáveis == "ST_REELEICAO" ~ "Reeleição",
       Variáveis == "DS_GRAU_INSTRUCAO" ~ "Escolaridade",
-      Variáveis == "log(RECEITA_TOTAL + 1):RACA_AGRUPADA" ~ "Interação Log(Receita +1) e Raça",
+      Variáveis == "log(RECEITA_TOTAL + 1):RACA_AGRUPADA" ~ "Interação Log (receita +1) e raça",
       TRUE ~ Variáveis
     )
   )
@@ -704,14 +707,15 @@ tabela_drop1_cand <- flextable(drop1_junto_cand) %>%
     "χ² = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
   font(fontname = "Times New Roman",part = "all") 
 
+#Visualiza e salva a tabela 
 print(tabela_drop1_cand)
 save_as_image(
   tabela_drop1_cand, 
   path = "tabela_drop1_cand.png", 
   res = 300)
 
-#Modelo com interação para os candidatos competitivos 
 
+#Modelo com interação para os candidatos competitivos 
 drop1_comp2024 <- as.data.frame(drop1(modelo_logist_com_interacao2024, test = "Chisq"))
 drop1_comp2020 <- as.data.frame(drop1(modelo_logist_com_interacao2020, test = "Chisq"))
 drop1_comp2016 <- as.data.frame(drop1(modelo_logist_com_interacao2016, test = "Chisq"))
@@ -726,8 +730,9 @@ drop1_comp2024$Ano <- 2024
 drop1_comp2020$Ano <- 2020
 drop1_comp2016$Ano <- 2016
 
-# Juntar tudo
+# Juntar os bancos e formata(muda casa decimal e o nome das variáveis)
 drop1_junto_comp <- bind_rows(drop1_comp2024,drop1_comp2020,drop1_comp2016)
+
 
 drop1_junto_comp <- drop1_junto_comp%>%
   rename("Qui quadrado" = ChiSq,
@@ -742,13 +747,13 @@ drop1_junto_comp <- drop1_junto_comp%>%
       format(round(`P-valor`, 4), nsmall = 4, decimal.mark = ","))) %>%
   mutate(
     Variáveis = case_when(
-      Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log(Receita +1)",
-      Variáveis == "log(BENS_TOTAL + 1)" ~ "Log(Patrimônio +1)",    ####
+      Variáveis == "log(RECEITA_TOTAL + 1)" ~ "Log (receita +1)",
+      Variáveis == "log(BENS_TOTAL + 1)" ~ "Log (bens +1)",    
       Variáveis == "RACA_AGRUPADA" ~ "Raça",
       Variáveis == "DS_GENERO" ~ "Gênero",
       Variáveis == "ST_REELEICAO" ~ "Reeleição",
       Variáveis == "DS_GRAU_INSTRUCAO" ~ "Escolaridade",
-      Variáveis == "log(RECEITA_TOTAL + 1):RACA_AGRUPADA" ~ "Interação Log(Receita +1) e Raça",
+      Variáveis == "log(RECEITA_TOTAL + 1):RACA_AGRUPADA" ~ "Interação Log (receita +1) e raça",
       TRUE ~ Variáveis
     )
   )
@@ -758,7 +763,7 @@ drop1_junto_comp <- drop1_junto_comp %>%
     names_from = Ano,
     values_from = c(`Qui quadrado`, `P-valor`))
 
-
+#Cria a tabela 
 tabela_drop1_comp <- flextable(drop1_junto_comp) %>%
   theme_booktabs() %>%
   autofit() %>%
@@ -783,13 +788,14 @@ tabela_drop1_comp <- flextable(drop1_junto_comp) %>%
     "χ² = Estatística Qui-Quadrado do teste de razão de verossimilhança" )) %>%
   font(fontname = "Times New Roman",part = "all") 
 
+#Visualiza e salva a tabela
 print(tabela_drop1_comp)
 save_as_image(
   tabela_drop1_comp, 
   path = "tabela_drop1_comp.png", 
   res = 300)
 
-# Quadrante 2024 
+# Gráfico de receita por número de votos dividido em quadrantes, para 2024 
 corte_x <- mean(candidatos_semNA2024$RECEITA_TOTAL) # Média do eixo X
 corte_y <- mean(candidatos_semNA2024$TOTAL_VOTOS)
 
@@ -832,7 +838,7 @@ ggplot(candidatos_semNA2024,
 lista_por_quadrante <- split(candidatos_semNA2024$NM_CANDIDATO, candidatos_semNA2024$quadrante)
 print(lista_por_quadrante)
 
-
+#Exporta uma tabela com o nome dos candidatos em cada quadrante 
 max_linhas <- max(sapply(lista_por_quadrante, length))
 lista_alinhada <- lapply(lista_por_quadrante, function(x) 
   c(x, rep(NA, max_linhas - length(x))))
