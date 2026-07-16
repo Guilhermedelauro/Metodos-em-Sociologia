@@ -286,7 +286,6 @@ vif(modelo_lm_com2016) #vê se as variáveis independentes estão muito correlac
 
 plot(modelo_lm_com2016) #para ver os resíduos 
 
-competitivos_semNA2016[37, ]
 #Modelo de regressão logística para os competitivos (pra ver a chance de ser eleito)
 #Variável dependente: eleito ou não
 #Variáveis independentes: receita, gênero, branco ou não-branco, reeleição, valor dos bens

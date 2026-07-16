@@ -258,7 +258,7 @@ plot(curva_roc_firth2024,
      print.auc = TRUE,           # Escreve o valor da AUC no gráfico
      auc.polygon = TRUE,         # Pinta a área sob a curva de cinza claro
      grid = TRUE,                # Coloca as linhas de grade ao fundo
-     col = "#1abc9c")           # Deixa a linha da curva em um tom verde/azul bonito
+     col = "#1abc9c",)           # Deixa a linha da curva em um tom verde/azul bonito
      
 
 
